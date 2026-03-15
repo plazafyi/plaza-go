@@ -18,10 +18,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/stainless-sdks/plaza-go/internal"
-	"github.com/stainless-sdks/plaza-go/internal/apierror"
-	"github.com/stainless-sdks/plaza-go/internal/apiform"
-	"github.com/stainless-sdks/plaza-go/internal/apiquery"
+	"github.com/plazafyi/plaza-go/internal"
+	"github.com/plazafyi/plaza-go/internal/apierror"
+	"github.com/plazafyi/plaza-go/internal/apiform"
+	"github.com/plazafyi/plaza-go/internal/apiquery"
 )
 
 func getDefaultHeaders() map[string]string {

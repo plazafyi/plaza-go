@@ -3,8 +3,8 @@ package respjson_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stainless-sdks/plaza-go/internal/apijson"
-	rj "github.com/stainless-sdks/plaza-go/packages/respjson"
+	"github.com/plazafyi/plaza-go/internal/apijson"
+	rj "github.com/plazafyi/plaza-go/packages/respjson"
 	"reflect"
 	"testing"
 )

@@ -2,8 +2,8 @@ package apijson_test
 
 import (
 	"encoding/json"
-	"github.com/stainless-sdks/plaza-go/internal/apijson"
-	"github.com/stainless-sdks/plaza-go/packages/respjson"
+	"github.com/plazafyi/plaza-go/internal/apijson"
+	"github.com/plazafyi/plaza-go/packages/respjson"
 	"testing"
 )
 

@@ -12,9 +12,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stainless-sdks/plaza-go"
-	"github.com/stainless-sdks/plaza-go/internal/testutil"
-	"github.com/stainless-sdks/plaza-go/option"
+	"github.com/plazafyi/plaza-go"
+	"github.com/plazafyi/plaza-go/internal/testutil"
+	"github.com/plazafyi/plaza-go/option"
 )
 
 func TestV1CalculateDistanceMatrixWithOptionalParams(t *testing.T) {

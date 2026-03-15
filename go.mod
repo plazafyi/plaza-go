@@ -1,4 +1,4 @@
-module github.com/stainless-sdks/plaza-go
+module github.com/plazafyi/plaza-go
 
 go 1.22
 

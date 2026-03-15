@@ -3,8 +3,8 @@ package apijson_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stainless-sdks/plaza-go/internal/apijson"
-	"github.com/stainless-sdks/plaza-go/packages/param"
+	"github.com/plazafyi/plaza-go/internal/apijson"
+	"github.com/plazafyi/plaza-go/packages/param"
 	"reflect"
 	"testing"
 )
