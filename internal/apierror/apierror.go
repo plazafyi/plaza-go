@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"github.com/stainless-sdks/plaza-go/internal/apijson"
-	"github.com/stainless-sdks/plaza-go/packages/respjson"
+	"github.com/plazafyi/plaza-go/internal/apijson"
+	"github.com/plazafyi/plaza-go/packages/respjson"
 )
 
 // Error represents an error that originates from the API, i.e. when a request is

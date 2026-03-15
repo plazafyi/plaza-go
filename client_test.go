@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stainless-sdks/plaza-go"
-	"github.com/stainless-sdks/plaza-go/internal"
-	"github.com/stainless-sdks/plaza-go/option"
+	"github.com/plazafyi/plaza-go"
+	"github.com/plazafyi/plaza-go/internal"
+	"github.com/plazafyi/plaza-go/option"
 )
 
 type closureTransport struct {

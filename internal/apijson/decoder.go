@@ -7,7 +7,7 @@ package apijson
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stainless-sdks/plaza-go/packages/param"
+	"github.com/plazafyi/plaza-go/packages/param"
 	"reflect"
 	"strconv"
 	"sync"

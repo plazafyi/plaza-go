@@ -1,7 +1,7 @@
 package apijson
 
 import (
-	"github.com/stainless-sdks/plaza-go/packages/respjson"
+	"github.com/plazafyi/plaza-go/packages/respjson"
 	"reflect"
 )
 

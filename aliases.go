@@ -3,8 +3,8 @@
 package plaza
 
 import (
-	"github.com/stainless-sdks/plaza-go/internal/apierror"
-	"github.com/stainless-sdks/plaza-go/packages/param"
+	"github.com/plazafyi/plaza-go/internal/apierror"
+	"github.com/plazafyi/plaza-go/packages/param"
 )
 
 // aliased to make [param.APIUnion] private when embedding

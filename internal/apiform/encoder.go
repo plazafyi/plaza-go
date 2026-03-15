@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/stainless-sdks/plaza-go/packages/param"
+	"github.com/plazafyi/plaza-go/packages/param"
 )
 
 var encoders sync.Map // map[encoderEntry]encoderFunc

@@ -3,7 +3,7 @@
 package constant
 
 import (
-	shimjson "github.com/stainless-sdks/plaza-go/internal/encoding/json"
+	shimjson "github.com/plazafyi/plaza-go/internal/encoding/json"
 )
 
 type Constant[T any] interface {
