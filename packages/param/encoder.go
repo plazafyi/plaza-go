@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	shimjson "github.com/stainless-sdks/plaza-go/internal/encoding/json"
+	shimjson "github.com/plazafyi/plaza-go/internal/encoding/json"
 
 	"github.com/tidwall/sjson"
 )

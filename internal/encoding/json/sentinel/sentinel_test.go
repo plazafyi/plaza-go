@@ -1,8 +1,8 @@
 package sentinel_test
 
 import (
-	"github.com/stainless-sdks/plaza-go/internal/encoding/json/sentinel"
-	"github.com/stainless-sdks/plaza-go/packages/param"
+	"github.com/plazafyi/plaza-go/internal/encoding/json/sentinel"
+	"github.com/plazafyi/plaza-go/packages/param"
 	"reflect"
 	"slices"
 	"testing"

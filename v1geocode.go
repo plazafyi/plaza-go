@@ -8,12 +8,12 @@ import (
 	"net/url"
 	"slices"
 
-	"github.com/stainless-sdks/plaza-go/internal/apijson"
-	"github.com/stainless-sdks/plaza-go/internal/apiquery"
-	"github.com/stainless-sdks/plaza-go/internal/requestconfig"
-	"github.com/stainless-sdks/plaza-go/option"
-	"github.com/stainless-sdks/plaza-go/packages/param"
-	"github.com/stainless-sdks/plaza-go/packages/respjson"
+	"github.com/plazafyi/plaza-go/internal/apijson"
+	"github.com/plazafyi/plaza-go/internal/apiquery"
+	"github.com/plazafyi/plaza-go/internal/requestconfig"
+	"github.com/plazafyi/plaza-go/option"
+	"github.com/plazafyi/plaza-go/packages/param"
+	"github.com/plazafyi/plaza-go/packages/respjson"
 )
 
 // V1GeocodeService contains methods and other services that help with interacting

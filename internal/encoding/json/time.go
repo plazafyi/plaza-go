@@ -2,7 +2,7 @@
 package json
 
 import (
-	"github.com/stainless-sdks/plaza-go/internal/encoding/json/shims"
+	"github.com/plazafyi/plaza-go/internal/encoding/json/shims"
 	"reflect"
 	"time"
 )

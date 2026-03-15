@@ -2,7 +2,7 @@ package param
 
 import (
 	"encoding/json"
-	"github.com/stainless-sdks/plaza-go/internal/encoding/json/sentinel"
+	"github.com/plazafyi/plaza-go/internal/encoding/json/sentinel"
 	"reflect"
 )
 

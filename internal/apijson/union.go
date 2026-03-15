@@ -2,7 +2,7 @@ package apijson
 
 import (
 	"errors"
-	"github.com/stainless-sdks/plaza-go/packages/param"
+	"github.com/plazafyi/plaza-go/packages/param"
 	"reflect"
 
 	"github.com/tidwall/gjson"

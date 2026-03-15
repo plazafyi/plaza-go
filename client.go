@@ -8,8 +8,8 @@ import (
 	"os"
 	"slices"
 
-	"github.com/stainless-sdks/plaza-go/internal/requestconfig"
-	"github.com/stainless-sdks/plaza-go/option"
+	"github.com/plazafyi/plaza-go/internal/requestconfig"
+	"github.com/plazafyi/plaza-go/option"
 )
 
 // Client creates a struct with services and top level methods that help with
