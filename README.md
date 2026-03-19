@@ -1,12 +1,8 @@
 # Plaza Go API Library
 
-<!-- x-release-please-start-version -->
-
 <a href="https://pkg.go.dev/github.com/plazafyi/plaza-go"><img src="https://pkg.go.dev/badge/github.com/plazafyi/plaza-go.svg" alt="Go Reference"></a>
 
-<!-- x-release-please-end -->
-
-The Plaza Go library provides convenient access to the Plaza REST API
+The Plaza Go library provides convenient access to the [Plaza REST API](https://docs.plaza.fyi)
 from applications written in Go.
 
 It is generated with [Stainless](https://www.stainless.com/).
@@ -15,8 +11,8 @@ It is generated with [Stainless](https://www.stainless.com/).
 
 Use the Plaza MCP Server to enable AI assistants to interact with this API, allowing them to explore endpoints, make test requests, and use documentation to help integrate this SDK into your application.
 
-[![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en-US/install-mcp?name=plaza-mcp&config=eyJuYW1lIjoicGxhemEtbWNwIiwidHJhbnNwb3J0IjoiaHR0cCIsInVybCI6Imh0dHBzOi8vcGxhemEtbWNwLnN0bG1jcC5jb20iLCJoZWFkZXJzIjp7IngtcGxhemEtYXBpLWtleSI6Ik15IEFQSSBLZXkifX0)
-[![Install in VS Code](https://img.shields.io/badge/_-Add_to_VS_Code-blue?style=for-the-badge&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCA0MCA0MCI+PHBhdGggZmlsbD0iI0VFRSIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNMzAuMjM1IDM5Ljg4NGEyLjQ5MSAyLjQ5MSAwIDAgMS0xLjc4MS0uNzNMMTIuNyAyNC43OGwtMy40NiAyLjYyNC0zLjQwNiAyLjU4MmExLjY2NSAxLjY2NSAwIDAgMS0xLjA4Mi4zMzggMS42NjQgMS42NjQgMCAwIDEtMS4wNDYtLjQzMWwtMi4yLTJhMS42NjYgMS42NjYgMCAwIDEgMC0yLjQ2M0w3LjQ1OCAyMCA0LjY3IDE3LjQ1MyAxLjUwNyAxNC41N2ExLjY2NSAxLjY2NSAwIDAgMSAwLTIuNDYzbDIuMi0yYTEuNjY1IDEuNjY1IDAgMCAxIDIuMTMtLjA5N2w2Ljg2MyA1LjIwOUwyOC40NTIuODQ0YTIuNDg4IDIuNDg4IDAgMCAxIDEuODQxLS43MjljLjM1MS4wMDkuNjk5LjA5MSAxLjAxOS4yNDVsOC4yMzYgMy45NjFhMi41IDIuNSAwIDAgMSAxLjQxNSAyLjI1M3YuMDk5LS4wNDVWMzMuMzd2LS4wNDUuMDk1YTIuNTAxIDIuNTAxIDAgMCAxLTEuNDE2IDIuMjU3bC04LjIzNSAzLjk2MWEyLjQ5MiAyLjQ5MiAwIDAgMS0xLjA3Ny4yNDZabS43MTYtMjguOTQ3LTExLjk0OCA5LjA2MiAxMS45NTIgOS4wNjUtLjAwNC0xOC4xMjdaIi8+PC9zdmc+)](https://vscode.stainless.com/mcp/%7B%22name%22%3A%22plaza-mcp%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fplaza-mcp.stlmcp.com%22%2C%22headers%22%3A%7B%22x-plaza-api-key%22%3A%22My%20API%20Key%22%7D%7D)
+[![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en-US/install-mcp?name=%40plazafyi%2Fmcp&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBwbGF6YWZ5aS9tY3AiXSwiZW52Ijp7IlBMQVpBX0FQSV9LRVkiOiJNeSBBUEkgS2V5In19)
+[![Install in VS Code](https://img.shields.io/badge/_-Add_to_VS_Code-blue?style=for-the-badge&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCA0MCA0MCI+PHBhdGggZmlsbD0iI0VFRSIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNMzAuMjM1IDM5Ljg4NGEyLjQ5MSAyLjQ5MSAwIDAgMS0xLjc4MS0uNzNMMTIuNyAyNC43OGwtMy40NiAyLjYyNC0zLjQwNiAyLjU4MmExLjY2NSAxLjY2NSAwIDAgMS0xLjA4Mi4zMzggMS42NjQgMS42NjQgMCAwIDEtMS4wNDYtLjQzMWwtMi4yLTJhMS42NjYgMS42NjYgMCAwIDEgMC0yLjQ2M0w3LjQ1OCAyMCA0LjY3IDE3LjQ1MyAxLjUwNyAxNC41N2ExLjY2NSAxLjY2NSAwIDAgMSAwLTIuNDYzbDIuMi0yYTEuNjY1IDEuNjY1IDAgMCAxIDIuMTMtLjA5N2w2Ljg2MyA1LjIwOUwyOC40NTIuODQ0YTIuNDg4IDIuNDg4IDAgMCAxIDEuODQxLS43MjljLjM1MS4wMDkuNjk5LjA5MSAxLjAxOS4yNDVsOC4yMzYgMy45NjFhMi41IDIuNSAwIDAgMSAxLjQxNSAyLjI1M3YuMDk5LS4wNDVWMzMuMzd2LS4wNDUuMDk1YTIuNTAxIDIuNTAxIDAgMCAxLTEuNDE2IDIuMjU3bC04LjIzNSAzLjk2MWEyLjQ5MiAyLjQ5MiAwIDAgMS0xLjA3Ny4yNDZabS43MTYtMjguOTQ3LTExLjk0OCA5LjA2MiAxMS45NTIgOS4wNjUtLjAwNC0xOC4xMjdaIi8+PC9zdmc+)](https://vscode.stainless.com/mcp/%7B%22name%22%3A%22%40plazafyi%2Fmcp%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40plazafyi%2Fmcp%22%5D%2C%22env%22%3A%7B%22PLAZA_API_KEY%22%3A%22My%20API%20Key%22%7D%7D)
 
 > Note: You may need to set environment variables in your MCP client.
 
@@ -26,7 +22,7 @@ Use the Plaza MCP Server to enable AI assistants to interact with this API, allo
 
 ```go
 import (
-	"github.com/plazafyi/plaza-go" // imported as plaza
+	"github.com/plazafyi/plaza-go" // imported as githubcomplazafyiplazago
 )
 ```
 
@@ -62,205 +58,92 @@ import (
 )
 
 func main() {
-	client := plaza.NewClient(
-		option.WithAPIKey("My API Key"),      // defaults to os.LookupEnv("PLAZA_API_KEY")
-		option.WithEnvironmentEnvironment1(), // defaults to option.WithEnvironmentProduction()
+	client := githubcomplazafyiplazago.NewClient(
+		option.WithAPIKey("My API Key"), // defaults to os.LookupEnv("PLAZA_API_KEY")
+		option.WithEnvironmentLocal(),   // defaults to option.WithEnvironmentProduction()
 	)
-	datasets, err := client.V1.Datasets.List(context.TODO())
+	featureCollection, err := client.Elements.Nearby(context.TODO(), githubcomplazafyiplazago.ElementNearbyParams{
+		Lat:    githubcomplazafyiplazago.F(48.858400),
+		Lng:    githubcomplazafyiplazago.F(0.000000),
+		Radius: githubcomplazafyiplazago.F(int64(500)),
+	})
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Printf("%+v\n", datasets.Datasets)
+	fmt.Printf("%+v\n", featureCollection.Features)
 }
 
 ```
 
 ### Request fields
 
-The plaza library uses the [`omitzero`](https://tip.golang.org/doc/go1.24#encodingjsonpkgencodingjson)
-semantics from the Go 1.24+ `encoding/json` release for request fields.
+All request parameters are wrapped in a generic `Field` type,
+which we use to distinguish zero values from null or omitted fields.
 
-Required primitive fields (`int64`, `string`, etc.) feature the tag <code>\`json:"...,required"\`</code>. These
-fields are always serialized, even their zero values.
+This prevents accidentally sending a zero value if you forget a required parameter,
+and enables explicitly sending `null`, `false`, `''`, or `0` on optional parameters.
+Any field not specified is not sent.
 
-Optional primitive types are wrapped in a `param.Opt[T]`. These fields can be set with the provided constructors, `plaza.String(string)`, `plaza.Int(int64)`, etc.
-
-Any `param.Opt[T]`, map, slice, struct or string enum uses the
-tag <code>\`json:"...,omitzero"\`</code>. Its zero value is considered omitted.
-
-The `param.IsOmitted(any)` function can confirm the presence of any `omitzero` field.
+To construct fields with values, use the helpers `String()`, `Int()`, `Float()`, or most commonly, the generic `F[T]()`.
+To send a null, use `Null[T]()`, and to send a nonconforming value, use `Raw[T](any)`. For example:
 
 ```go
-p := plaza.ExampleParams{
-	ID:   "id_xxx",            // required property
-	Name: plaza.String("..."), // optional property
+params := FooParams{
+	Name: githubcomplazafyiplazago.F("hello"),
 
-	Point: plaza.Point{
-		X: 0,            // required field will serialize as 0
-		Y: plaza.Int(1), // optional field will serialize as 1
-		// ... omitted non-required fields will not be serialized
-	},
+	// Explicitly send `"description": null`
+	Description: githubcomplazafyiplazago.Null[string](),
 
-	Origin: plaza.Origin{}, // the zero value of [Origin] is considered omitted
-}
-```
+	Point: githubcomplazafyiplazago.F(githubcomplazafyiplazago.Point{
+		X: githubcomplazafyiplazago.Int(0),
+		Y: githubcomplazafyiplazago.Int(1),
 
-To send `null` instead of a `param.Opt[T]`, use `param.Null[T]()`.
-To send `null` instead of a struct `T`, use `param.NullStruct[T]()`.
-
-```go
-p.Name = param.Null[string]()       // 'null' instead of string
-p.Point = param.NullStruct[Point]() // 'null' instead of struct
-
-param.IsNull(p.Name)  // true
-param.IsNull(p.Point) // true
-```
-
-Request structs contain a `.SetExtraFields(map[string]any)` method which can send non-conforming
-fields in the request body. Extra fields overwrite any struct fields with a matching
-key. For security reasons, only use `SetExtraFields` with trusted data.
-
-To send a custom value instead of a struct, use `param.Override[T](value)`.
-
-```go
-// In cases where the API specifies a given type,
-// but you want to send something else, use [SetExtraFields]:
-p.SetExtraFields(map[string]any{
-	"x": 0.01, // send "x" as a float instead of int
-})
-
-// Send a number instead of an object
-custom := param.Override[plaza.FooParams](12)
-```
-
-### Request unions
-
-Unions are represented as a struct with fields prefixed by "Of" for each of its variants,
-only one field can be non-zero. The non-zero field will be serialized.
-
-Sub-properties of the union can be accessed via methods on the union struct.
-These methods return a mutable pointer to the underlying data, if present.
-
-```go
-// Only one field can be non-zero, use param.IsOmitted() to check if a field is set
-type AnimalUnionParam struct {
-	OfCat *Cat `json:",omitzero,inline`
-	OfDog *Dog `json:",omitzero,inline`
-}
-
-animal := AnimalUnionParam{
-	OfCat: &Cat{
-		Name: "Whiskers",
-		Owner: PersonParam{
-			Address: AddressParam{Street: "3333 Coyote Hill Rd", Zip: 0},
-		},
-	},
-}
-
-// Mutating a field
-if address := animal.GetOwner().GetAddress(); address != nil {
-	address.ZipCode = 94304
+		// In cases where the API specifies a given type,
+		// but you want to send something else, use `Raw`:
+		Z: githubcomplazafyiplazago.Raw[int64](0.01), // sends a float
+	}),
 }
 ```
 
 ### Response objects
 
-All fields in response structs are ordinary value types (not pointers or wrappers).
-Response structs also include a special `JSON` field containing metadata about
-each property.
+All fields in response structs are value types (not pointers or wrappers).
+
+If a given field is `null`, not present, or invalid, the corresponding field
+will simply be its zero value.
+
+All response structs also include a special `JSON` field, containing more detailed
+information about each property, which you can use like so:
 
 ```go
-type Animal struct {
-	Name   string `json:"name,nullable"`
-	Owners int    `json:"owners"`
-	Age    int    `json:"age"`
-	JSON   struct {
-		Name        respjson.Field
-		Owner       respjson.Field
-		Age         respjson.Field
-		ExtraFields map[string]respjson.Field
-	} `json:"-"`
+if res.Name == "" {
+	// true if `"name"` is either not present or explicitly null
+	res.JSON.Name.IsNull()
+
+	// true if the `"name"` key was not present in the response JSON at all
+	res.JSON.Name.IsMissing()
+
+	// When the API returns data that cannot be coerced to the expected type:
+	if res.JSON.Name.IsInvalid() {
+		raw := res.JSON.Name.Raw()
+
+		legacyName := struct{
+			First string `json:"first"`
+			Last  string `json:"last"`
+		}{}
+		json.Unmarshal([]byte(raw), &legacyName)
+		name = legacyName.First + " " + legacyName.Last
+	}
 }
 ```
 
-To handle optional data, use the `.Valid()` method on the JSON field.
-`.Valid()` returns true if a field is not `null`, not present, or couldn't be marshaled.
-
-If `.Valid()` is false, the corresponding field will simply be its zero value.
-
-```go
-raw := `{"owners": 1, "name": null}`
-
-var res Animal
-json.Unmarshal([]byte(raw), &res)
-
-// Accessing regular fields
-
-res.Owners // 1
-res.Name   // ""
-res.Age    // 0
-
-// Optional field checks
-
-res.JSON.Owners.Valid() // true
-res.JSON.Name.Valid()   // false
-res.JSON.Age.Valid()    // false
-
-// Raw JSON values
-
-res.JSON.Owners.Raw()                  // "1"
-res.JSON.Name.Raw() == "null"          // true
-res.JSON.Name.Raw() == respjson.Null   // true
-res.JSON.Age.Raw() == ""               // true
-res.JSON.Age.Raw() == respjson.Omitted // true
-```
-
-These `.JSON` structs also include an `ExtraFields` map containing
+These `.JSON` structs also include an `Extras` map containing
 any properties in the json response that were not specified
 in the struct. This can be useful for API features not yet
 present in the SDK.
 
 ```go
 body := res.JSON.ExtraFields["my_unexpected_field"].Raw()
-```
-
-### Response Unions
-
-In responses, unions are represented by a flattened struct containing all possible fields from each of the
-object variants.
-To convert it to a variant use the `.AsFooVariant()` method or the `.AsAny()` method if present.
-
-If a response value union contains primitive values, primitive fields will be alongside
-the properties but prefixed with `Of` and feature the tag `json:"...,inline"`.
-
-```go
-type AnimalUnion struct {
-	// From variants [Dog], [Cat]
-	Owner Person `json:"owner"`
-	// From variant [Dog]
-	DogBreed string `json:"dog_breed"`
-	// From variant [Cat]
-	CatBreed string `json:"cat_breed"`
-	// ...
-
-	JSON struct {
-		Owner respjson.Field
-		// ...
-	} `json:"-"`
-}
-
-// If animal variant
-if animal.Owner.Address.ZipCode == "" {
-	panic("missing zip code")
-}
-
-// Switch on the variant
-switch variant := animal.AsAny().(type) {
-case Dog:
-case Cat:
-default:
-	panic("unexpected type")
-}
 ```
 
 ### RequestOptions
@@ -271,20 +154,18 @@ This library uses the functional options pattern. Functions defined in the
 requests. For example:
 
 ```go
-client := plaza.NewClient(
+client := githubcomplazafyiplazago.NewClient(
 	// Adds a header to every request made by the client
 	option.WithHeader("X-Some-Header", "custom_header_info"),
 )
 
-client.V1.Datasets.List(context.TODO(), ...,
+client.Elements.Nearby(context.TODO(), ...,
 	// Override the header
 	option.WithHeader("X-Some-Header", "some_other_custom_header_info"),
 	// Add an undocumented field to the request body, using sjson syntax
 	option.WithJSONSet("some.json.path", map[string]string{"my": "object"}),
 )
 ```
-
-The request option `option.WithDebugLog(nil)` may be helpful while debugging.
 
 See the [full list of request options](https://pkg.go.dev/github.com/plazafyi/plaza-go/option).
 
@@ -300,21 +181,25 @@ with additional helper methods like `.GetNextPage()`, e.g.:
 ### Errors
 
 When the API returns a non-success status code, we return an error with type
-`*plaza.Error`. This contains the `StatusCode`, `*http.Request`, and
+`*githubcomplazafyiplazago.Error`. This contains the `StatusCode`, `*http.Request`, and
 `*http.Response` values of the request, as well as the JSON of the error body
 (much like other response objects in the SDK).
 
 To handle errors, we recommend that you use the `errors.As` pattern:
 
 ```go
-_, err := client.V1.Datasets.List(context.TODO())
+_, err := client.Elements.Nearby(context.TODO(), githubcomplazafyiplazago.ElementNearbyParams{
+	Lat:    githubcomplazafyiplazago.F(48.858400),
+	Lng:    githubcomplazafyiplazago.F(0.000000),
+	Radius: githubcomplazafyiplazago.F(int64(500)),
+})
 if err != nil {
-	var apierr *plaza.Error
+	var apierr *githubcomplazafyiplazago.Error
 	if errors.As(err, &apierr) {
 		println(string(apierr.DumpRequest(true)))  // Prints the serialized HTTP request
 		println(string(apierr.DumpResponse(true))) // Prints the serialized HTTP response
 	}
-	panic(err.Error()) // GET "/api/v1/datasets": 400 Bad Request { ... }
+	panic(err.Error()) // GET "/api/v1/features/nearby": 400 Bad Request { ... }
 }
 ```
 
@@ -332,8 +217,13 @@ To set a per-retry timeout, use `option.WithRequestTimeout()`.
 // This sets the timeout for the request, including all the retries.
 ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 defer cancel()
-client.V1.Datasets.List(
+client.Elements.Nearby(
 	ctx,
+	githubcomplazafyiplazago.ElementNearbyParams{
+		Lat:    githubcomplazafyiplazago.F(48.858400),
+		Lng:    githubcomplazafyiplazago.F(0.000000),
+		Radius: githubcomplazafyiplazago.F(int64(500)),
+	},
 	// This sets the per-retry timeout
 	option.WithRequestTimeout(20*time.Second),
 )
@@ -342,14 +232,14 @@ client.V1.Datasets.List(
 ### File uploads
 
 Request parameters that correspond to file uploads in multipart requests are typed as
-`io.Reader`. The contents of the `io.Reader` will by default be sent as a multipart form
+`param.Field[io.Reader]`. The contents of the `io.Reader` will by default be sent as a multipart form
 part with the file name of "anonymous_file" and content-type of "application/octet-stream".
 
 The file name and content-type can be customized by implementing `Name() string` or `ContentType()
 string` on the run-time type of `io.Reader`. Note that `os.File` implements `Name() string`, so a
 file returned by `os.Open` will be sent with the file name on disk.
 
-We also provide a helper `plaza.File(reader io.Reader, filename string, contentType string)`
+We also provide a helper `githubcomplazafyiplazago.FileParam(reader io.Reader, filename string, contentType string)`
 which can be used to wrap any `io.Reader` with the appropriate file name and content type.
 
 ### Retries
@@ -362,12 +252,20 @@ You can use the `WithMaxRetries` option to configure or disable this:
 
 ```go
 // Configure the default for all requests:
-client := plaza.NewClient(
+client := githubcomplazafyiplazago.NewClient(
 	option.WithMaxRetries(0), // default is 2
 )
 
 // Override per-request:
-client.V1.Datasets.List(context.TODO(), option.WithMaxRetries(5))
+client.Elements.Nearby(
+	context.TODO(),
+	githubcomplazafyiplazago.ElementNearbyParams{
+		Lat:    githubcomplazafyiplazago.F(48.858400),
+		Lng:    githubcomplazafyiplazago.F(0.000000),
+		Radius: githubcomplazafyiplazago.F(int64(500)),
+	},
+	option.WithMaxRetries(5),
+)
 ```
 
 ### Accessing raw response data (e.g. response headers)
@@ -378,11 +276,19 @@ you need to examine response headers, status codes, or other details.
 ```go
 // Create a variable to store the HTTP response
 var response *http.Response
-datasets, err := client.V1.Datasets.List(context.TODO(), option.WithResponseInto(&response))
+featureCollection, err := client.Elements.Nearby(
+	context.TODO(),
+	githubcomplazafyiplazago.ElementNearbyParams{
+		Lat:    githubcomplazafyiplazago.F(48.858400),
+		Lng:    githubcomplazafyiplazago.F(0.000000),
+		Radius: githubcomplazafyiplazago.F(int64(500)),
+	},
+	option.WithResponseInto(&response),
+)
 if err != nil {
 	// handle error
 }
-fmt.Printf("%+v\n", datasets)
+fmt.Printf("%+v\n", featureCollection)
 
 fmt.Printf("Status Code: %d\n", response.StatusCode)
 fmt.Printf("Headers: %+#v\n", response.Header)
@@ -402,7 +308,7 @@ To make requests to undocumented endpoints, you can use `client.Get`, `client.Po
 var (
     // params can be an io.Reader, a []byte, an encoding/json serializable object,
     // or a "…Params" struct defined in this library.
-    params map[string]any
+    params map[string]interface{}
 
     // result can be an []byte, *http.Response, a encoding/json deserializable object,
     // or a model defined in this library.
@@ -421,10 +327,10 @@ or the `option.WithJSONSet()` methods.
 
 ```go
 params := FooNewParams{
-    ID:   "id_xxxx",
-    Data: FooNewParamsData{
-        FirstName: plaza.String("John"),
-    },
+    ID:   githubcomplazafyiplazago.F("id_xxxx"),
+    Data: githubcomplazafyiplazago.F(FooNewParamsData{
+        FirstName: githubcomplazafyiplazago.F("John"),
+    }),
 }
 client.Foo.New(context.Background(), params, option.WithJSONSet("data.last_name", "Doe"))
 ```
@@ -458,7 +364,7 @@ func Logger(req *http.Request, next option.MiddlewareNext) (res *http.Response, 
     return res, err
 }
 
-client := plaza.NewClient(
+client := githubcomplazafyiplazago.NewClient(
 	option.WithMiddleware(Logger),
 )
 ```
