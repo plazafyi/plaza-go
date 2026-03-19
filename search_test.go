@@ -4,6 +4,7 @@ package githubcomplazafyiplazago_test
 
 import (
 	"context"
+	"errors"
 	"os"
 	"testing"
 
@@ -12,7 +13,7 @@ import (
 	"github.com/plazafyi/plaza-go/option"
 )
 
-func TestUsage(t *testing.T) {
+func TestSearchQueryWithOptionalParams(t *testing.T) {
 	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -25,14 +26,16 @@ func TestUsage(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	featureCollection, err := client.Elements.Nearby(context.TODO(), githubcomplazafyiplazago.ElementNearbyParams{
-		Lat:    githubcomplazafyiplazago.F(48.858400),
-		Lng:    githubcomplazafyiplazago.F(0.000000),
-		Radius: githubcomplazafyiplazago.F(int64(500)),
+	_, err := client.Search.Query(context.TODO(), githubcomplazafyiplazago.SearchQueryParams{
+		Q:      githubcomplazafyiplazago.F("q"),
+		Cursor: githubcomplazafyiplazago.F("cursor"),
+		Limit:  githubcomplazafyiplazago.F(int64(0)),
 	})
 	if err != nil {
-		t.Error(err)
-		return
+		var apierr *githubcomplazafyiplazago.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
 	}
-	t.Logf("%+v\n", featureCollection.Features)
 }
