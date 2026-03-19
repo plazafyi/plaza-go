@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0 (2026-03-19)
+
+Full Changelog: [v0.0.3...v0.1.0](https://github.com/plazafyi/plaza-go/compare/v0.0.3...v0.1.0)
+
+### Features
+
+* initial SDK generation ([495d36c](https://github.com/plazafyi/plaza-go/commit/495d36c8447e8189da02d85e1c3803faaa950c8d))
+
 ## 0.0.3 (2026-03-19)
 
 Full Changelog: [v0.0.2...v0.0.3](https://github.com/plazafyi/plaza-go/compare/v0.0.2...v0.0.3)
