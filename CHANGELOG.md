@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1 (2026-03-20)
+
+Full Changelog: [v0.1.0...v0.1.1](https://github.com/plazafyi/plaza-go/compare/v0.1.0...v0.1.1)
+
+### Refactors
+
+* **tests:** switch from prism to steady ([3b13036](https://github.com/plazafyi/plaza-go/commit/3b13036479cb256700491564e548c7236e22c8d6))
+
 ## 0.1.0 (2026-03-19)
 
 Full Changelog: [v0.0.3...v0.1.0](https://github.com/plazafyi/plaza-go/compare/v0.0.3...v0.1.0)
