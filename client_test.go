@@ -38,10 +38,9 @@ func TestUserAgentHeader(t *testing.T) {
 			},
 		}),
 	)
-	_, _ = client.Elements.Nearby(context.Background(), githubcomplazafyiplazago.ElementNearbyParams{
-		Lat:    githubcomplazafyiplazago.F(48.858400),
-		Lng:    githubcomplazafyiplazago.F(0.000000),
-		Radius: githubcomplazafyiplazago.F(int64(500)),
+	_, _ = client.Elements.Query(context.Background(), githubcomplazafyiplazago.ElementQueryParams{
+		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
+		Radius: githubcomplazafyiplazago.F(500.000000),
 	})
 	if userAgent != fmt.Sprintf("Plaza/Go %s", internal.PackageVersion) {
 		t.Errorf("Expected User-Agent to be correct, but got: %#v", userAgent)
@@ -66,10 +65,9 @@ func TestRetryAfter(t *testing.T) {
 			},
 		}),
 	)
-	_, err := client.Elements.Nearby(context.Background(), githubcomplazafyiplazago.ElementNearbyParams{
-		Lat:    githubcomplazafyiplazago.F(48.858400),
-		Lng:    githubcomplazafyiplazago.F(0.000000),
-		Radius: githubcomplazafyiplazago.F(int64(500)),
+	_, err := client.Elements.Query(context.Background(), githubcomplazafyiplazago.ElementQueryParams{
+		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
+		Radius: githubcomplazafyiplazago.F(500.000000),
 	})
 	if err == nil {
 		t.Error("Expected there to be a cancel error")
@@ -105,10 +103,9 @@ func TestDeleteRetryCountHeader(t *testing.T) {
 		}),
 		option.WithHeaderDel("X-Stainless-Retry-Count"),
 	)
-	_, err := client.Elements.Nearby(context.Background(), githubcomplazafyiplazago.ElementNearbyParams{
-		Lat:    githubcomplazafyiplazago.F(48.858400),
-		Lng:    githubcomplazafyiplazago.F(0.000000),
-		Radius: githubcomplazafyiplazago.F(int64(500)),
+	_, err := client.Elements.Query(context.Background(), githubcomplazafyiplazago.ElementQueryParams{
+		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
+		Radius: githubcomplazafyiplazago.F(500.000000),
 	})
 	if err == nil {
 		t.Error("Expected there to be a cancel error")
@@ -139,10 +136,9 @@ func TestOverwriteRetryCountHeader(t *testing.T) {
 		}),
 		option.WithHeader("X-Stainless-Retry-Count", "42"),
 	)
-	_, err := client.Elements.Nearby(context.Background(), githubcomplazafyiplazago.ElementNearbyParams{
-		Lat:    githubcomplazafyiplazago.F(48.858400),
-		Lng:    githubcomplazafyiplazago.F(0.000000),
-		Radius: githubcomplazafyiplazago.F(int64(500)),
+	_, err := client.Elements.Query(context.Background(), githubcomplazafyiplazago.ElementQueryParams{
+		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
+		Radius: githubcomplazafyiplazago.F(500.000000),
 	})
 	if err == nil {
 		t.Error("Expected there to be a cancel error")
@@ -172,10 +168,9 @@ func TestRetryAfterMs(t *testing.T) {
 			},
 		}),
 	)
-	_, err := client.Elements.Nearby(context.Background(), githubcomplazafyiplazago.ElementNearbyParams{
-		Lat:    githubcomplazafyiplazago.F(48.858400),
-		Lng:    githubcomplazafyiplazago.F(0.000000),
-		Radius: githubcomplazafyiplazago.F(int64(500)),
+	_, err := client.Elements.Query(context.Background(), githubcomplazafyiplazago.ElementQueryParams{
+		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
+		Radius: githubcomplazafyiplazago.F(500.000000),
 	})
 	if err == nil {
 		t.Error("Expected there to be a cancel error")
@@ -199,10 +194,9 @@ func TestContextCancel(t *testing.T) {
 	)
 	cancelCtx, cancel := context.WithCancel(context.Background())
 	cancel()
-	_, err := client.Elements.Nearby(cancelCtx, githubcomplazafyiplazago.ElementNearbyParams{
-		Lat:    githubcomplazafyiplazago.F(48.858400),
-		Lng:    githubcomplazafyiplazago.F(0.000000),
-		Radius: githubcomplazafyiplazago.F(int64(500)),
+	_, err := client.Elements.Query(cancelCtx, githubcomplazafyiplazago.ElementQueryParams{
+		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
+		Radius: githubcomplazafyiplazago.F(500.000000),
 	})
 	if err == nil {
 		t.Error("Expected there to be a cancel error")
@@ -223,10 +217,9 @@ func TestContextCancelDelay(t *testing.T) {
 	)
 	cancelCtx, cancel := context.WithTimeout(context.Background(), 2*time.Millisecond)
 	defer cancel()
-	_, err := client.Elements.Nearby(cancelCtx, githubcomplazafyiplazago.ElementNearbyParams{
-		Lat:    githubcomplazafyiplazago.F(48.858400),
-		Lng:    githubcomplazafyiplazago.F(0.000000),
-		Radius: githubcomplazafyiplazago.F(int64(500)),
+	_, err := client.Elements.Query(cancelCtx, githubcomplazafyiplazago.ElementQueryParams{
+		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
+		Radius: githubcomplazafyiplazago.F(500.000000),
 	})
 	if err == nil {
 		t.Error("expected there to be a cancel error")
@@ -253,10 +246,9 @@ func TestContextDeadline(t *testing.T) {
 				},
 			}),
 		)
-		_, err := client.Elements.Nearby(deadlineCtx, githubcomplazafyiplazago.ElementNearbyParams{
-			Lat:    githubcomplazafyiplazago.F(48.858400),
-			Lng:    githubcomplazafyiplazago.F(0.000000),
-			Radius: githubcomplazafyiplazago.F(int64(500)),
+		_, err := client.Elements.Query(deadlineCtx, githubcomplazafyiplazago.ElementQueryParams{
+			Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
+			Radius: githubcomplazafyiplazago.F(500.000000),
 		})
 		if err == nil {
 			t.Error("expected there to be a deadline error")

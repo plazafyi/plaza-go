@@ -6,16 +6,27 @@ import (
 	"reflect"
 
 	"github.com/plazafyi/plaza-go/internal/apijson"
-	"github.com/plazafyi/plaza-go/internal/param"
 	"github.com/tidwall/gjson"
 )
 
-// Bare GeoJSON FeatureCollection. Pagination metadata is returned in HTTP headers
-// (X-Limit, X-Has-More, X-Next-Cursor, X-Next-Offset, Link).
+// GeoJSON FeatureCollection (RFC 7946). For paginated endpoints, metadata is
+// returned in HTTP response headers rather than the body:
+//
+// | Header          | Description                                      |
+// | --------------- | ------------------------------------------------ |
+// | `X-Limit`       | Requested result limit                           |
+// | `X-Has-More`    | `true` if more results exist                     |
+// | `X-Next-Cursor` | Opaque cursor for next page (cursor pagination)  |
+// | `X-Next-Offset` | Numeric offset for next page (offset pagination) |
+// | `Link`          | RFC 8288 `rel="next"` link to the next page      |
+//
+// Content-Type is `application/geo+json`.
 type FeatureCollection struct {
-	Features []GeoJsonFeature      `json:"features" api:"required"`
-	Type     FeatureCollectionType `json:"type" api:"required"`
-	JSON     featureCollectionJSON `json:"-"`
+	// Array of GeoJSON Feature objects
+	Features []GeoJsonFeature `json:"features" api:"required"`
+	// Always `FeatureCollection`
+	Type FeatureCollectionType `json:"type" api:"required"`
+	JSON featureCollectionJSON `json:"-"`
 }
 
 // featureCollectionJSON contains the JSON metadata for the struct
@@ -35,6 +46,7 @@ func (r featureCollectionJSON) RawJSON() string {
 	return r.raw
 }
 
+// Always `FeatureCollection`
 type FeatureCollectionType string
 
 const (
@@ -49,15 +61,22 @@ func (r FeatureCollectionType) IsKnown() bool {
 	return false
 }
 
+// GeoJSON Feature representing an OSM element. Tags from the original OSM element
+// are flattened directly into `properties` (not nested under a `tags` key).
+// Metadata fields `@type` and `@id` identify the OSM element type and ID within
+// properties.
 type GeoJsonFeature struct {
-	Geometry   GeoJsonGeometry        `json:"geometry" api:"required"`
+	// GeoJSON Geometry object per RFC 7946. Coordinates use [longitude, latitude]
+	// order. 3D coordinates [lng, lat, elevation] are used for elevation endpoints.
+	Geometry GeoJsonGeometry `json:"geometry" api:"required"`
+	// OSM tags flattened as key-value pairs, plus `@type` (node/way/relation) and
+	// `@id` (OSM ID) metadata fields. May include `distance_m` for proximity queries.
 	Properties map[string]interface{} `json:"properties" api:"required"`
-	Type       GeoJsonFeatureType     `json:"type" api:"required"`
-	// Feature identifier (type/osm_id)
-	ID string `json:"id"`
-	// OpenStreetMap ID
-	OsmID int64              `json:"osm_id"`
-	JSON  geoJsonFeatureJSON `json:"-"`
+	// Always `Feature`
+	Type GeoJsonFeatureType `json:"type" api:"required"`
+	// Compound identifier in `type/osm_id` format
+	ID   string             `json:"id"`
+	JSON geoJsonFeatureJSON `json:"-"`
 }
 
 // geoJsonFeatureJSON contains the JSON metadata for the struct [GeoJsonFeature]
@@ -66,7 +85,6 @@ type geoJsonFeatureJSON struct {
 	Properties  apijson.Field
 	Type        apijson.Field
 	ID          apijson.Field
-	OsmID       apijson.Field
 	raw         string
 	ExtraFields map[string]apijson.Field
 }
@@ -79,6 +97,7 @@ func (r geoJsonFeatureJSON) RawJSON() string {
 	return r.raw
 }
 
+// Always `Feature`
 type GeoJsonFeatureType string
 
 const (
@@ -93,11 +112,15 @@ func (r GeoJsonFeatureType) IsKnown() bool {
 	return false
 }
 
+// GeoJSON Geometry object per RFC 7946. Coordinates use [longitude, latitude]
+// order. 3D coordinates [lng, lat, elevation] are used for elevation endpoints.
 type GeoJsonGeometry struct {
-	// GeoJSON coordinates array (nesting depth varies by geometry type)
+	// Coordinates array. Nesting depth varies by geometry type: Point = [lng, lat],
+	// LineString = [[lng, lat], ...], Polygon = [[[lng, lat], ...], ...], etc.
 	Coordinates GeoJsonGeometryCoordinatesUnion `json:"coordinates" api:"required"`
-	Type        GeoJsonGeometryType             `json:"type" api:"required"`
-	JSON        geoJsonGeometryJSON             `json:"-"`
+	// Geometry type
+	Type GeoJsonGeometryType `json:"type" api:"required"`
+	JSON geoJsonGeometryJSON `json:"-"`
 }
 
 // geoJsonGeometryJSON contains the JSON metadata for the struct [GeoJsonGeometry]
@@ -116,11 +139,13 @@ func (r geoJsonGeometryJSON) RawJSON() string {
 	return r.raw
 }
 
-// GeoJSON coordinates array (nesting depth varies by geometry type)
+// Coordinates array. Nesting depth varies by geometry type: Point = [lng, lat],
+// LineString = [[lng, lat], ...], Polygon = [[[lng, lat], ...], ...], etc.
 //
-// Union satisfied by [GeoJsonGeometryCoordinatesArray],
-// [GeoJsonGeometryCoordinatesArray], [GeoJsonGeometryCoordinatesArray] or
-// [GeoJsonGeometryCoordinatesArray].
+// Union satisfied by [GeoJsonGeometryCoordinatesPoint],
+// [GeoJsonGeometryCoordinatesLineStringOrMultiPoint],
+// [GeoJsonGeometryCoordinatesPolygonOrMultiLineString] or
+// [GeoJsonGeometryCoordinatesMultiPolygon].
 type GeoJsonGeometryCoordinatesUnion interface {
 	implementsGeoJsonGeometryCoordinatesUnion()
 }
@@ -131,27 +156,42 @@ func init() {
 		"",
 		apijson.UnionVariant{
 			TypeFilter: gjson.JSON,
-			Type:       reflect.TypeOf(GeoJsonGeometryCoordinatesArray{}),
+			Type:       reflect.TypeOf(GeoJsonGeometryCoordinatesPoint{}),
 		},
 		apijson.UnionVariant{
 			TypeFilter: gjson.JSON,
-			Type:       reflect.TypeOf(GeoJsonGeometryCoordinatesArray{}),
+			Type:       reflect.TypeOf(GeoJsonGeometryCoordinatesLineStringOrMultiPoint{}),
 		},
 		apijson.UnionVariant{
 			TypeFilter: gjson.JSON,
-			Type:       reflect.TypeOf(GeoJsonGeometryCoordinatesArray{}),
+			Type:       reflect.TypeOf(GeoJsonGeometryCoordinatesPolygonOrMultiLineString{}),
 		},
 		apijson.UnionVariant{
 			TypeFilter: gjson.JSON,
-			Type:       reflect.TypeOf(GeoJsonGeometryCoordinatesArray{}),
+			Type:       reflect.TypeOf(GeoJsonGeometryCoordinatesMultiPolygon{}),
 		},
 	)
 }
 
-type GeoJsonGeometryCoordinatesArray []float64
+type GeoJsonGeometryCoordinatesPoint []float64
 
-func (r GeoJsonGeometryCoordinatesArray) implementsGeoJsonGeometryCoordinatesUnion() {}
+func (r GeoJsonGeometryCoordinatesPoint) implementsGeoJsonGeometryCoordinatesUnion() {}
 
+type GeoJsonGeometryCoordinatesLineStringOrMultiPoint [][]float64
+
+func (r GeoJsonGeometryCoordinatesLineStringOrMultiPoint) implementsGeoJsonGeometryCoordinatesUnion() {
+}
+
+type GeoJsonGeometryCoordinatesPolygonOrMultiLineString [][][]float64
+
+func (r GeoJsonGeometryCoordinatesPolygonOrMultiLineString) implementsGeoJsonGeometryCoordinatesUnion() {
+}
+
+type GeoJsonGeometryCoordinatesMultiPolygon [][][][]float64
+
+func (r GeoJsonGeometryCoordinatesMultiPolygon) implementsGeoJsonGeometryCoordinatesUnion() {}
+
+// Geometry type
 type GeoJsonGeometryType string
 
 const (
@@ -170,26 +210,3 @@ func (r GeoJsonGeometryType) IsKnown() bool {
 	}
 	return false
 }
-
-type GeoJsonGeometryParam struct {
-	// GeoJSON coordinates array (nesting depth varies by geometry type)
-	Coordinates param.Field[GeoJsonGeometryCoordinatesUnionParam] `json:"coordinates" api:"required"`
-	Type        param.Field[GeoJsonGeometryType]                  `json:"type" api:"required"`
-}
-
-func (r GeoJsonGeometryParam) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-// GeoJSON coordinates array (nesting depth varies by geometry type)
-//
-// Satisfied by [GeoJsonGeometryCoordinatesArrayParam],
-// [GeoJsonGeometryCoordinatesArrayParam], [GeoJsonGeometryCoordinatesArrayParam],
-// [GeoJsonGeometryCoordinatesArrayParam].
-type GeoJsonGeometryCoordinatesUnionParam interface {
-	implementsGeoJsonGeometryCoordinatesUnionParam()
-}
-
-type GeoJsonGeometryCoordinatesArrayParam []float64
-
-func (r GeoJsonGeometryCoordinatesArrayParam) implementsGeoJsonGeometryCoordinatesUnionParam() {}

@@ -36,9 +36,16 @@ func NewSearchService(opts ...option.RequestOption) (r *SearchService) {
 // Search OSM features by name
 func (r *SearchService) Query(ctx context.Context, query SearchQueryParams, opts ...option.RequestOption) (res *FeatureCollection, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/geo+json")}, opts...)
 	path := "api/v1/search"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	return res, err
+}
+
+// Search OSM features by name
+func (r *SearchService) QueryPost(ctx context.Context, body SearchQueryPostParams, opts ...option.RequestOption) (res *FeatureCollection, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "api/v1/search"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
 
@@ -49,10 +56,43 @@ type SearchQueryParams struct {
 	Cursor param.Field[string] `query:"cursor"`
 	// Maximum results (default 25, max 100)
 	Limit param.Field[int64] `query:"limit"`
+	// Comma-separated property fields to include
+	OutputFields param.Field[string] `query:"output[fields]"`
+	// Extra computed fields: bbox, distance, center
+	OutputInclude param.Field[string] `query:"output[include]"`
+	// Coordinate decimal precision (1-15, default 7)
+	OutputPrecision param.Field[int64] `query:"output[precision]"`
+	// Sort by: distance, name, osm_id
+	OutputSort param.Field[string] `query:"output[sort]"`
 }
 
 // URLQuery serializes [SearchQueryParams]'s query parameters as `url.Values`.
 func (r SearchQueryParams) URLQuery() (v url.Values) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
+type SearchQueryPostParams struct {
+	// Search query string
+	Q param.Field[string] `query:"q" api:"required"`
+	// Cursor for pagination
+	Cursor param.Field[string] `query:"cursor"`
+	// Maximum results (default 25, max 100)
+	Limit param.Field[int64] `query:"limit"`
+	// Comma-separated property fields to include
+	OutputFields param.Field[string] `query:"output[fields]"`
+	// Extra computed fields: bbox, distance, center
+	OutputInclude param.Field[string] `query:"output[include]"`
+	// Coordinate decimal precision (1-15, default 7)
+	OutputPrecision param.Field[int64] `query:"output[precision]"`
+	// Sort by: distance, name, osm_id
+	OutputSort param.Field[string] `query:"output[sort]"`
+}
+
+// URLQuery serializes [SearchQueryPostParams]'s query parameters as `url.Values`.
+func (r SearchQueryPostParams) URLQuery() (v url.Values) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,

@@ -39,7 +39,6 @@ func NewOptimizeService(opts ...option.RequestOption) (r *OptimizeService) {
 // Optimize route through waypoints
 func (r *OptimizeService) New(ctx context.Context, body OptimizeNewParams, opts ...option.RequestOption) (res *OptimizeResult, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/geo+json")}, opts...)
 	path := "api/v1/optimize"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
@@ -57,25 +56,31 @@ func (r *OptimizeService) Get(ctx context.Context, jobID string, opts ...option.
 	return res, err
 }
 
-// Completed optimization — GeoJSON Feature with optimized route
+// Completed optimization result as a GeoJSON FeatureCollection. Each Feature is a
+// waypoint in optimized visit order. Top-level fields provide summary statistics.
 type OptimizeCompletedResult struct {
-	Geometry   GeoJsonGeometry                   `json:"geometry" api:"required"`
-	Properties OptimizeCompletedResultProperties `json:"properties" api:"required"`
-	// Job status
-	Status OptimizeCompletedResultStatus `json:"status" api:"required"`
-	Type   OptimizeCompletedResultType   `json:"type" api:"required"`
-	JSON   optimizeCompletedResultJSON   `json:"-"`
+	// Waypoints in optimized visit order
+	Features []OptimizeCompletedResultFeature `json:"features" api:"required"`
+	// Optimization method used (e.g. `nearest_neighbor`, `2opt`)
+	Optimization string `json:"optimization" api:"required"`
+	// Whether the route returns to the starting waypoint
+	Roundtrip bool `json:"roundtrip" api:"required"`
+	// Total travel time for the optimized route in seconds
+	TotalCostS float64                     `json:"total_cost_s" api:"required"`
+	Type       OptimizeCompletedResultType `json:"type" api:"required"`
+	JSON       optimizeCompletedResultJSON `json:"-"`
 }
 
 // optimizeCompletedResultJSON contains the JSON metadata for the struct
 // [OptimizeCompletedResult]
 type optimizeCompletedResultJSON struct {
-	Geometry    apijson.Field
-	Properties  apijson.Field
-	Status      apijson.Field
-	Type        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+	Features     apijson.Field
+	Optimization apijson.Field
+	Roundtrip    apijson.Field
+	TotalCostS   apijson.Field
+	Type         apijson.Field
+	raw          string
+	ExtraFields  map[string]apijson.Field
 }
 
 func (r *OptimizeCompletedResult) UnmarshalJSON(data []byte) (err error) {
@@ -88,44 +93,72 @@ func (r optimizeCompletedResultJSON) RawJSON() string {
 
 func (r OptimizeCompletedResult) implementsOptimizeResult() {}
 
-type OptimizeCompletedResultProperties struct {
-	// Total distance in meters
-	Distance float64 `json:"distance"`
-	// Estimated duration in seconds
-	Duration float64 `json:"duration"`
-	// Optimized waypoint ordering
-	WaypointOrder []int64                               `json:"waypoint_order"`
-	JSON          optimizeCompletedResultPropertiesJSON `json:"-"`
+// GeoJSON Point Feature representing an optimized waypoint with cost data.
+type OptimizeCompletedResultFeature struct {
+	// GeoJSON Geometry object per RFC 7946. Coordinates use [longitude, latitude]
+	// order. 3D coordinates [lng, lat, elevation] are used for elevation endpoints.
+	Geometry   GeoJsonGeometry                           `json:"geometry" api:"required"`
+	Properties OptimizeCompletedResultFeaturesProperties `json:"properties" api:"required"`
+	Type       OptimizeCompletedResultFeaturesType       `json:"type" api:"required"`
+	JSON       optimizeCompletedResultFeatureJSON        `json:"-"`
 }
 
-// optimizeCompletedResultPropertiesJSON contains the JSON metadata for the struct
-// [OptimizeCompletedResultProperties]
-type optimizeCompletedResultPropertiesJSON struct {
-	Distance      apijson.Field
-	Duration      apijson.Field
-	WaypointOrder apijson.Field
-	raw           string
-	ExtraFields   map[string]apijson.Field
+// optimizeCompletedResultFeatureJSON contains the JSON metadata for the struct
+// [OptimizeCompletedResultFeature]
+type optimizeCompletedResultFeatureJSON struct {
+	Geometry    apijson.Field
+	Properties  apijson.Field
+	Type        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
 }
 
-func (r *OptimizeCompletedResultProperties) UnmarshalJSON(data []byte) (err error) {
+func (r *OptimizeCompletedResultFeature) UnmarshalJSON(data []byte) (err error) {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-func (r optimizeCompletedResultPropertiesJSON) RawJSON() string {
+func (r optimizeCompletedResultFeatureJSON) RawJSON() string {
 	return r.raw
 }
 
-// Job status
-type OptimizeCompletedResultStatus string
+type OptimizeCompletedResultFeaturesProperties struct {
+	// Travel time in seconds from the previous waypoint to this one (0 for the first
+	// waypoint)
+	CostS float64 `json:"cost_s" api:"required"`
+	// Cumulative travel time in seconds from the start to this waypoint
+	CumulativeCostS float64 `json:"cumulative_cost_s" api:"required"`
+	// Position of this waypoint in the optimized visit order (0-based)
+	WaypointIndex int64                                         `json:"waypoint_index" api:"required"`
+	JSON          optimizeCompletedResultFeaturesPropertiesJSON `json:"-"`
+}
+
+// optimizeCompletedResultFeaturesPropertiesJSON contains the JSON metadata for the
+// struct [OptimizeCompletedResultFeaturesProperties]
+type optimizeCompletedResultFeaturesPropertiesJSON struct {
+	CostS           apijson.Field
+	CumulativeCostS apijson.Field
+	WaypointIndex   apijson.Field
+	raw             string
+	ExtraFields     map[string]apijson.Field
+}
+
+func (r *OptimizeCompletedResultFeaturesProperties) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r optimizeCompletedResultFeaturesPropertiesJSON) RawJSON() string {
+	return r.raw
+}
+
+type OptimizeCompletedResultFeaturesType string
 
 const (
-	OptimizeCompletedResultStatusCompleted OptimizeCompletedResultStatus = "completed"
+	OptimizeCompletedResultFeaturesTypeFeature OptimizeCompletedResultFeaturesType = "Feature"
 )
 
-func (r OptimizeCompletedResultStatus) IsKnown() bool {
+func (r OptimizeCompletedResultFeaturesType) IsKnown() bool {
 	switch r {
-	case OptimizeCompletedResultStatusCompleted:
+	case OptimizeCompletedResultFeaturesTypeFeature:
 		return true
 	}
 	return false
@@ -134,33 +167,34 @@ func (r OptimizeCompletedResultStatus) IsKnown() bool {
 type OptimizeCompletedResultType string
 
 const (
-	OptimizeCompletedResultTypeFeature OptimizeCompletedResultType = "Feature"
+	OptimizeCompletedResultTypeFeatureCollection OptimizeCompletedResultType = "FeatureCollection"
 )
 
 func (r OptimizeCompletedResultType) IsKnown() bool {
 	switch r {
-	case OptimizeCompletedResultTypeFeature:
+	case OptimizeCompletedResultTypeFeatureCollection:
 		return true
 	}
 	return false
 }
 
-// Status of an async optimization job
+// Status of an async optimization job. When `completed`, the `result` field
+// contains the full OptimizeCompletedResult. When `processing`, the job is still
+// running — poll again. Failed jobs return a standard Error response (HTTP 422),
+// not this schema.
 type OptimizeJobStatus struct {
-	// Job status
+	// Current job state
 	Status OptimizeJobStatusStatus `json:"status" api:"required"`
-	// Error message when failed
-	Error string `json:"error" api:"nullable"`
-	// Optimization result when completed
-	Result interface{}           `json:"result" api:"nullable"`
-	JSON   optimizeJobStatusJSON `json:"-"`
+	// Completed optimization result as a GeoJSON FeatureCollection. Each Feature is a
+	// waypoint in optimized visit order. Top-level fields provide summary statistics.
+	Result OptimizeCompletedResult `json:"result" api:"nullable"`
+	JSON   optimizeJobStatusJSON   `json:"-"`
 }
 
 // optimizeJobStatusJSON contains the JSON metadata for the struct
 // [OptimizeJobStatus]
 type optimizeJobStatusJSON struct {
 	Status      apijson.Field
-	Error       apijson.Field
 	Result      apijson.Field
 	raw         string
 	ExtraFields map[string]apijson.Field
@@ -174,28 +208,28 @@ func (r optimizeJobStatusJSON) RawJSON() string {
 	return r.raw
 }
 
-// Job status
+// Current job state
 type OptimizeJobStatusStatus string
 
 const (
 	OptimizeJobStatusStatusCompleted  OptimizeJobStatusStatus = "completed"
 	OptimizeJobStatusStatusProcessing OptimizeJobStatusStatus = "processing"
-	OptimizeJobStatusStatusFailed     OptimizeJobStatusStatus = "failed"
 )
 
 func (r OptimizeJobStatusStatus) IsKnown() bool {
 	switch r {
-	case OptimizeJobStatusStatusCompleted, OptimizeJobStatusStatusProcessing, OptimizeJobStatusStatusFailed:
+	case OptimizeJobStatusStatusCompleted, OptimizeJobStatusStatusProcessing:
 		return true
 	}
 	return false
 }
 
-// Async optimization in progress — poll with the job_id
+// Async optimization in progress. Poll `GET /api/v1/optimize/{job_id}` until the
+// status changes to `completed` or `failed`.
 type OptimizeProcessingResult struct {
-	// Job ID for polling
+	// Job ID for polling the result
 	JobID string `json:"job_id" api:"required"`
-	// Job status
+	// Always `processing`
 	Status OptimizeProcessingResultStatus `json:"status" api:"required"`
 	JSON   optimizeProcessingResultJSON   `json:"-"`
 }
@@ -219,7 +253,7 @@ func (r optimizeProcessingResultJSON) RawJSON() string {
 
 func (r OptimizeProcessingResult) implementsOptimizeResult() {}
 
-// Job status
+// Always `processing`
 type OptimizeProcessingResultStatus string
 
 const (
@@ -234,13 +268,15 @@ func (r OptimizeProcessingResultStatus) IsKnown() bool {
 	return false
 }
 
-// Route optimization request through waypoints
+// Route optimization (Travelling Salesman) request. Finds the most efficient order
+// to visit a set of waypoints. Minimum 2 waypoints, maximum 50. For large inputs,
+// the request may be processed asynchronously.
 type OptimizeRequestParam struct {
-	// Waypoints to visit (GeoJSON MultiPoint geometry, minimum 2 points)
-	Waypoints param.Field[GeoJsonGeometryParam] `json:"waypoints" api:"required"`
-	// Travel mode (default: auto)
+	// Waypoints to visit in optimized order (2-50 points)
+	Waypoints param.Field[[]OptimizeRequestWaypointParam] `json:"waypoints" api:"required"`
+	// Travel mode (default: `auto`)
 	Mode param.Field[OptimizeRequestMode] `json:"mode"`
-	// Whether route returns to start (default: true)
+	// Whether the route should return to the starting waypoint (default: true)
 	Roundtrip param.Field[bool] `json:"roundtrip"`
 }
 
@@ -248,7 +284,19 @@ func (r OptimizeRequestParam) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
-// Travel mode (default: auto)
+// Geographic coordinate as a JSON object with `lat` and `lng` fields.
+type OptimizeRequestWaypointParam struct {
+	// Latitude in decimal degrees (-90 to 90)
+	Lat param.Field[float64] `json:"lat" api:"required"`
+	// Longitude in decimal degrees (-180 to 180)
+	Lng param.Field[float64] `json:"lng" api:"required"`
+}
+
+func (r OptimizeRequestWaypointParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+// Travel mode (default: `auto`)
 type OptimizeRequestMode string
 
 const (
@@ -265,16 +313,21 @@ func (r OptimizeRequestMode) IsKnown() bool {
 	return false
 }
 
-// Optimization response — either a completed GeoJSON Feature route or an async job
-// reference
+// Optimization response — either a completed FeatureCollection with the optimized
+// route, or an async job reference to poll.
 type OptimizeResult struct {
-	// Job status
-	Status   OptimizeResultStatus `json:"status" api:"required"`
-	Geometry GeoJsonGeometry      `json:"geometry"`
-	// Job ID for polling
+	// This field can have the runtime type of [[]OptimizeCompletedResultFeature].
+	Features interface{} `json:"features"`
+	// Job ID for polling the result
 	JobID string `json:"job_id"`
-	// This field can have the runtime type of [OptimizeCompletedResultProperties].
-	Properties interface{}        `json:"properties"`
+	// Optimization method used (e.g. `nearest_neighbor`, `2opt`)
+	Optimization string `json:"optimization"`
+	// Whether the route returns to the starting waypoint
+	Roundtrip bool `json:"roundtrip"`
+	// Always `processing`
+	Status OptimizeResultStatus `json:"status"`
+	// Total travel time for the optimized route in seconds
+	TotalCostS float64            `json:"total_cost_s"`
 	Type       OptimizeResultType `json:"type"`
 	JSON       optimizeResultJSON `json:"-"`
 	union      OptimizeResultUnion
@@ -282,13 +335,15 @@ type OptimizeResult struct {
 
 // optimizeResultJSON contains the JSON metadata for the struct [OptimizeResult]
 type optimizeResultJSON struct {
-	Status      apijson.Field
-	Geometry    apijson.Field
-	JobID       apijson.Field
-	Properties  apijson.Field
-	Type        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+	Features     apijson.Field
+	JobID        apijson.Field
+	Optimization apijson.Field
+	Roundtrip    apijson.Field
+	Status       apijson.Field
+	TotalCostS   apijson.Field
+	Type         apijson.Field
+	raw          string
+	ExtraFields  map[string]apijson.Field
 }
 
 func (r optimizeResultJSON) RawJSON() string {
@@ -313,8 +368,8 @@ func (r OptimizeResult) AsUnion() OptimizeResultUnion {
 	return r.union
 }
 
-// Optimization response — either a completed GeoJSON Feature route or an async job
-// reference
+// Optimization response — either a completed FeatureCollection with the optimized
+// route, or an async job reference to poll.
 //
 // Union satisfied by [OptimizeCompletedResult] or [OptimizeProcessingResult].
 type OptimizeResultUnion interface {
@@ -336,17 +391,16 @@ func init() {
 	)
 }
 
-// Job status
+// Always `processing`
 type OptimizeResultStatus string
 
 const (
-	OptimizeResultStatusCompleted  OptimizeResultStatus = "completed"
 	OptimizeResultStatusProcessing OptimizeResultStatus = "processing"
 )
 
 func (r OptimizeResultStatus) IsKnown() bool {
 	switch r {
-	case OptimizeResultStatusCompleted, OptimizeResultStatusProcessing:
+	case OptimizeResultStatusProcessing:
 		return true
 	}
 	return false
@@ -355,19 +409,21 @@ func (r OptimizeResultStatus) IsKnown() bool {
 type OptimizeResultType string
 
 const (
-	OptimizeResultTypeFeature OptimizeResultType = "Feature"
+	OptimizeResultTypeFeatureCollection OptimizeResultType = "FeatureCollection"
 )
 
 func (r OptimizeResultType) IsKnown() bool {
 	switch r {
-	case OptimizeResultTypeFeature:
+	case OptimizeResultTypeFeatureCollection:
 		return true
 	}
 	return false
 }
 
 type OptimizeNewParams struct {
-	// Route optimization request through waypoints
+	// Route optimization (Travelling Salesman) request. Finds the most efficient order
+	// to visit a set of waypoints. Minimum 2 waypoints, maximum 50. For large inputs,
+	// the request may be processed asynchronously.
 	OptimizeRequest OptimizeRequestParam `json:"optimize_request" api:"required"`
 }
 
