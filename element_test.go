@@ -14,7 +14,6 @@ import (
 )
 
 func TestElementGet(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -41,7 +40,6 @@ func TestElementGet(t *testing.T) {
 }
 
 func TestElementBatch(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -71,7 +69,6 @@ func TestElementBatch(t *testing.T) {
 }
 
 func TestElementNearbyWithOptionalParams(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -99,7 +96,6 @@ func TestElementNearbyWithOptionalParams(t *testing.T) {
 }
 
 func TestElementQueryWithOptionalParams(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL

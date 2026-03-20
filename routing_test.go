@@ -14,7 +14,6 @@ import (
 )
 
 func TestRoutingIsochroneWithOptionalParams(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -42,7 +41,6 @@ func TestRoutingIsochroneWithOptionalParams(t *testing.T) {
 }
 
 func TestRoutingMatrixWithOptionalParams(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -77,7 +75,6 @@ func TestRoutingMatrixWithOptionalParams(t *testing.T) {
 }
 
 func TestRoutingNearestWithOptionalParams(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -104,7 +101,6 @@ func TestRoutingNearestWithOptionalParams(t *testing.T) {
 }
 
 func TestRoutingRouteWithOptionalParams(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL

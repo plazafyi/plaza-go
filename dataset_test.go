@@ -14,7 +14,6 @@ import (
 )
 
 func TestDatasetNewWithOptionalParams(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -44,7 +43,6 @@ func TestDatasetNewWithOptionalParams(t *testing.T) {
 }
 
 func TestDatasetGet(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -67,7 +65,6 @@ func TestDatasetGet(t *testing.T) {
 }
 
 func TestDatasetList(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -90,7 +87,6 @@ func TestDatasetList(t *testing.T) {
 }
 
 func TestDatasetDelete(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -113,7 +109,6 @@ func TestDatasetDelete(t *testing.T) {
 }
 
 func TestDatasetFeaturesWithOptionalParams(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
