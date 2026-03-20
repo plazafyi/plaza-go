@@ -14,7 +14,6 @@ import (
 )
 
 func TestGeocodeAutocompleteWithOptionalParams(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -45,7 +44,6 @@ func TestGeocodeAutocompleteWithOptionalParams(t *testing.T) {
 }
 
 func TestGeocodeBatch(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -70,7 +68,6 @@ func TestGeocodeBatch(t *testing.T) {
 }
 
 func TestGeocodeForwardWithOptionalParams(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -102,7 +99,6 @@ func TestGeocodeForwardWithOptionalParams(t *testing.T) {
 }
 
 func TestGeocodeReverseWithOptionalParams(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL

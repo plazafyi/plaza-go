@@ -14,7 +14,6 @@ import (
 )
 
 func TestElevationBatch(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -44,7 +43,6 @@ func TestElevationBatch(t *testing.T) {
 }
 
 func TestElevationLookupWithOptionalParams(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -71,7 +69,6 @@ func TestElevationLookupWithOptionalParams(t *testing.T) {
 }
 
 func TestElevationProfile(t *testing.T) {
-	t.Skip("Mock server doesn't support callbacks yet")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
