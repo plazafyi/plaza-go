@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0 (2026-03-20)
+
+Full Changelog: [v0.1.1...v0.2.0](https://github.com/plazafyi/plaza-go/compare/v0.1.1...v0.2.0)
+
+### Features
+
+* **api:** api update ([1fb1765](https://github.com/plazafyi/plaza-go/commit/1fb1765dd4c45401145720c4611cb83cdf4ee43d))
+
 ## 0.1.1 (2026-03-20)
 
 Full Changelog: [v0.1.0...v0.1.1](https://github.com/plazafyi/plaza-go/compare/v0.1.0...v0.1.1)
