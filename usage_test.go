@@ -24,10 +24,9 @@ func TestUsage(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	featureCollection, err := client.Elements.Nearby(context.TODO(), githubcomplazafyiplazago.ElementNearbyParams{
-		Lat:    githubcomplazafyiplazago.F(48.858400),
-		Lng:    githubcomplazafyiplazago.F(0.000000),
-		Radius: githubcomplazafyiplazago.F(int64(500)),
+	featureCollection, err := client.Elements.Query(context.TODO(), githubcomplazafyiplazago.ElementQueryParams{
+		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
+		Radius: githubcomplazafyiplazago.F(500.000000),
 	})
 	if err != nil {
 		t.Error(err)

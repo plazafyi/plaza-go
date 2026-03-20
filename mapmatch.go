@@ -35,17 +35,18 @@ func NewMapMatchService(opts ...option.RequestOption) (r *MapMatchService) {
 // Match GPS coordinates to the road network
 func (r *MapMatchService) Match(ctx context.Context, body MapMatchMatchParams, opts ...option.RequestOption) (res *MapMatchResult, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/geo+json")}, opts...)
 	path := "api/v1/map-match"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
 
-// GPS trace to match against the road network
+// GPS trace to snap to the road network. Provide an array of coordinate objects
+// representing the GPS points. Maximum 50 points per request.
 type MapMatchRequestParam struct {
-	// GPS trace (GeoJSON LineString geometry)
-	Trace param.Field[GeoJsonGeometryParam] `json:"trace" api:"required"`
-	// Search radius per coordinate in meters (optional, default 50)
+	// GPS coordinates to match, in order of travel (max 50 points)
+	Coordinates param.Field[[]MapMatchRequestCoordinateParam] `json:"coordinates" api:"required"`
+	// Search radius per coordinate in meters. Must have the same length as
+	// `coordinates` or be omitted entirely. Default: 50m per point.
 	Radiuses param.Field[[]float64] `json:"radiuses"`
 }
 
@@ -53,22 +54,36 @@ func (r MapMatchRequestParam) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
-// Map matching result with snapped geometry
+// Geographic coordinate as a JSON object with `lat` and `lng` fields.
+type MapMatchRequestCoordinateParam struct {
+	// Latitude in decimal degrees (-90 to 90)
+	Lat param.Field[float64] `json:"lat" api:"required"`
+	// Longitude in decimal degrees (-180 to 180)
+	Lng param.Field[float64] `json:"lng" api:"required"`
+}
+
+func (r MapMatchRequestCoordinateParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+// Map matching result as a GeoJSON FeatureCollection. Each Feature is a snapped
+// tracepoint. The top-level `matchings` array contains the matched sub-routes
+// connecting consecutive tracepoints.
 type MapMatchResult struct {
-	Geometry   GeoJsonGeometry          `json:"geometry" api:"required"`
-	Properties MapMatchResultProperties `json:"properties" api:"required"`
-	Type       MapMatchResultType       `json:"type" api:"required"`
-	// Matched route legs between consecutive trace points
-	Legs []map[string]interface{} `json:"legs"`
-	JSON mapMatchResultJSON       `json:"-"`
+	// Snapped tracepoint Features in input order
+	Features []MapMatchResultFeature `json:"features" api:"required"`
+	// Matched sub-routes. Each matching connects a contiguous sequence of tracepoints
+	// that could be matched to roads.
+	Matchings []map[string]interface{} `json:"matchings" api:"required"`
+	Type      MapMatchResultType       `json:"type" api:"required"`
+	JSON      mapMatchResultJSON       `json:"-"`
 }
 
 // mapMatchResultJSON contains the JSON metadata for the struct [MapMatchResult]
 type mapMatchResultJSON struct {
-	Geometry    apijson.Field
-	Properties  apijson.Field
+	Features    apijson.Field
+	Matchings   apijson.Field
 	Type        apijson.Field
-	Legs        apijson.Field
 	raw         string
 	ExtraFields map[string]apijson.Field
 }
@@ -81,50 +96,103 @@ func (r mapMatchResultJSON) RawJSON() string {
 	return r.raw
 }
 
-type MapMatchResultProperties struct {
-	// Match confidence score
-	Confidence float64 `json:"confidence"`
-	// Total matched distance in meters
-	Distance float64 `json:"distance"`
-	// Estimated duration in seconds
-	Duration float64                      `json:"duration"`
-	JSON     mapMatchResultPropertiesJSON `json:"-"`
+// GeoJSON Point Feature representing a GPS point snapped to the road network.
+type MapMatchResultFeature struct {
+	// GeoJSON Geometry object per RFC 7946. Coordinates use [longitude, latitude]
+	// order. 3D coordinates [lng, lat, elevation] are used for elevation endpoints.
+	Geometry   GeoJsonGeometry                  `json:"geometry" api:"required"`
+	Properties MapMatchResultFeaturesProperties `json:"properties" api:"required"`
+	Type       MapMatchResultFeaturesType       `json:"type" api:"required"`
+	JSON       mapMatchResultFeatureJSON        `json:"-"`
 }
 
-// mapMatchResultPropertiesJSON contains the JSON metadata for the struct
-// [MapMatchResultProperties]
-type mapMatchResultPropertiesJSON struct {
-	Confidence  apijson.Field
-	Distance    apijson.Field
-	Duration    apijson.Field
+// mapMatchResultFeatureJSON contains the JSON metadata for the struct
+// [MapMatchResultFeature]
+type mapMatchResultFeatureJSON struct {
+	Geometry    apijson.Field
+	Properties  apijson.Field
+	Type        apijson.Field
 	raw         string
 	ExtraFields map[string]apijson.Field
 }
 
-func (r *MapMatchResultProperties) UnmarshalJSON(data []byte) (err error) {
+func (r *MapMatchResultFeature) UnmarshalJSON(data []byte) (err error) {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-func (r mapMatchResultPropertiesJSON) RawJSON() string {
+func (r mapMatchResultFeatureJSON) RawJSON() string {
 	return r.raw
+}
+
+type MapMatchResultFeaturesProperties struct {
+	// Distance from the original GPS point to the snapped point in meters
+	DistanceM float64 `json:"distance_m"`
+	// Road edge ID the point was snapped to
+	EdgeID int64 `json:"edge_id"`
+	// Index into the `matchings` array indicating which matching sub-route this point
+	// belongs to
+	MatchingsIndex int64 `json:"matchings_index"`
+	// Road name at the snapped point
+	Name string `json:"name" api:"nullable"`
+	// Original GPS coordinate as [lng, lat]
+	Original []float64 `json:"original"`
+	// Index of this tracepoint in the original `coordinates` array
+	WaypointIndex int64                                `json:"waypoint_index"`
+	JSON          mapMatchResultFeaturesPropertiesJSON `json:"-"`
+}
+
+// mapMatchResultFeaturesPropertiesJSON contains the JSON metadata for the struct
+// [MapMatchResultFeaturesProperties]
+type mapMatchResultFeaturesPropertiesJSON struct {
+	DistanceM      apijson.Field
+	EdgeID         apijson.Field
+	MatchingsIndex apijson.Field
+	Name           apijson.Field
+	Original       apijson.Field
+	WaypointIndex  apijson.Field
+	raw            string
+	ExtraFields    map[string]apijson.Field
+}
+
+func (r *MapMatchResultFeaturesProperties) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r mapMatchResultFeaturesPropertiesJSON) RawJSON() string {
+	return r.raw
+}
+
+type MapMatchResultFeaturesType string
+
+const (
+	MapMatchResultFeaturesTypeFeature MapMatchResultFeaturesType = "Feature"
+)
+
+func (r MapMatchResultFeaturesType) IsKnown() bool {
+	switch r {
+	case MapMatchResultFeaturesTypeFeature:
+		return true
+	}
+	return false
 }
 
 type MapMatchResultType string
 
 const (
-	MapMatchResultTypeFeature MapMatchResultType = "Feature"
+	MapMatchResultTypeFeatureCollection MapMatchResultType = "FeatureCollection"
 )
 
 func (r MapMatchResultType) IsKnown() bool {
 	switch r {
-	case MapMatchResultTypeFeature:
+	case MapMatchResultTypeFeatureCollection:
 		return true
 	}
 	return false
 }
 
 type MapMatchMatchParams struct {
-	// GPS trace to match against the road network
+	// GPS trace to snap to the road network. Provide an array of coordinate objects
+	// representing the GPS points. Maximum 50 points per request.
 	MapMatchRequest MapMatchRequestParam `json:"map_match_request" api:"required"`
 }
 

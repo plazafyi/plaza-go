@@ -81,7 +81,6 @@ func (r *DatasetService) Delete(ctx context.Context, id string, opts ...option.R
 // Query features in a dataset
 func (r *DatasetService) Features(ctx context.Context, id string, query DatasetFeaturesParams, opts ...option.RequestOption) (res *FeatureCollection, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/geo+json")}, opts...)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return nil, err
@@ -91,25 +90,27 @@ func (r *DatasetService) Features(ctx context.Context, id string, query DatasetF
 	return res, err
 }
 
+// Metadata for a custom dataset. Datasets contain user-uploaded geospatial
+// features separate from the OSM data.
 type Dataset struct {
-	// Dataset ID
+	// Dataset UUID
 	ID string `json:"id" api:"required" format:"uuid"`
-	// Creation timestamp
+	// Creation timestamp (UTC)
 	InsertedAt time.Time `json:"inserted_at" api:"required" format:"date-time"`
-	// Dataset name
+	// Human-readable dataset name
 	Name string `json:"name" api:"required"`
-	// URL-friendly slug
+	// URL-friendly identifier
 	Slug string `json:"slug" api:"required"`
-	// Last update timestamp
+	// Last update timestamp (UTC)
 	UpdatedAt time.Time `json:"updated_at" api:"required" format:"date-time"`
-	// Attribution text
+	// Required attribution text
 	Attribution string `json:"attribution" api:"nullable"`
 	// Dataset description
 	Description string `json:"description" api:"nullable"`
-	// License identifier
+	// License identifier (e.g. CC-BY-4.0)
 	License string `json:"license" api:"nullable"`
-	// Source data URL
-	SourceURL string      `json:"source_url" api:"nullable"`
+	// URL of the original data source
+	SourceURL string      `json:"source_url" api:"nullable" format:"uri"`
 	JSON      datasetJSON `json:"-"`
 }
 
@@ -136,7 +137,9 @@ func (r datasetJSON) RawJSON() string {
 	return r.raw
 }
 
+// List of all available datasets.
 type DatasetList struct {
+	// Array of dataset metadata objects
 	Datasets []Dataset       `json:"datasets" api:"required"`
 	JSON     datasetListJSON `json:"-"`
 }
@@ -157,18 +160,18 @@ func (r datasetListJSON) RawJSON() string {
 }
 
 type DatasetNewParams struct {
-	// Dataset name
+	// Human-readable dataset name
 	Name param.Field[string] `json:"name" api:"required"`
-	// URL-friendly slug
+	// URL-friendly identifier (lowercase, hyphens, no spaces)
 	Slug param.Field[string] `json:"slug" api:"required"`
-	// Attribution text
+	// Required attribution text
 	Attribution param.Field[string] `json:"attribution"`
 	// Dataset description
 	Description param.Field[string] `json:"description"`
-	// License identifier
+	// License identifier (e.g. CC-BY-4.0)
 	License param.Field[string] `json:"license"`
 	// Source data URL
-	SourceURL param.Field[string] `json:"source_url"`
+	SourceURL param.Field[string] `json:"source_url" format:"uri"`
 }
 
 func (r DatasetNewParams) MarshalJSON() (data []byte, err error) {
@@ -180,6 +183,22 @@ type DatasetFeaturesParams struct {
 	Cursor param.Field[string] `query:"cursor"`
 	// Maximum results
 	Limit param.Field[int64] `query:"limit"`
+	// Buffer geometry by meters
+	OutputBuffer param.Field[float64] `query:"output[buffer]"`
+	// Replace geometry with centroid
+	OutputCentroid param.Field[bool] `query:"output[centroid]"`
+	// Comma-separated property fields to include
+	OutputFields param.Field[string] `query:"output[fields]"`
+	// Include geometry (default true)
+	OutputGeometry param.Field[bool] `query:"output[geometry]"`
+	// Extra computed fields: bbox, distance, center
+	OutputInclude param.Field[string] `query:"output[include]"`
+	// Coordinate decimal precision (1-15, default 7)
+	OutputPrecision param.Field[int64] `query:"output[precision]"`
+	// Simplify geometry tolerance in meters
+	OutputSimplify param.Field[float64] `query:"output[simplify]"`
+	// Sort by: distance, name, osm_id
+	OutputSort param.Field[string] `query:"output[sort]"`
 }
 
 // URLQuery serializes [DatasetFeaturesParams]'s query parameters as `url.Values`.
