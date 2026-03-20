@@ -416,6 +416,8 @@ type GeocodeAutocompleteParams struct {
 	Q param.Field[string] `query:"q" api:"required"`
 	// ISO 3166-1 alpha-2 country code filter
 	CountryCode param.Field[string] `query:"country_code"`
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 	// Language code for localized names (e.g. en, de, fr)
 	Lang param.Field[string] `query:"lang"`
 	// Focus latitude
@@ -442,6 +444,8 @@ type GeocodeAutocompletePostParams struct {
 	Q param.Field[string] `query:"q" api:"required"`
 	// ISO 3166-1 alpha-2 country code filter
 	CountryCode param.Field[string] `query:"country_code"`
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 	// Language code for localized names (e.g. en, de, fr)
 	Lang param.Field[string] `query:"lang"`
 	// Focus latitude
@@ -478,6 +482,8 @@ type GeocodeForwardParams struct {
 	Bbox param.Field[string] `query:"bbox"`
 	// ISO 3166-1 alpha-2 country code filter
 	CountryCode param.Field[string] `query:"country_code"`
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 	// Language code for localized names (e.g. en, de, fr)
 	Lang param.Field[string] `query:"lang"`
 	// Focus latitude
@@ -505,6 +511,8 @@ type GeocodeForwardPostParams struct {
 	Bbox param.Field[string] `query:"bbox"`
 	// ISO 3166-1 alpha-2 country code filter
 	CountryCode param.Field[string] `query:"country_code"`
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 	// Language code for localized names (e.g. en, de, fr)
 	Lang param.Field[string] `query:"lang"`
 	// Focus latitude
@@ -527,6 +535,8 @@ func (r GeocodeForwardPostParams) URLQuery() (v url.Values) {
 }
 
 type GeocodeReverseParams struct {
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 	// Language code for localized names (e.g. en, de, fr)
 	Lang param.Field[string] `query:"lang"`
 	// Legacy shorthand. Latitude. Use near param instead.
@@ -553,6 +563,8 @@ func (r GeocodeReverseParams) URLQuery() (v url.Values) {
 }
 
 type GeocodeReversePostParams struct {
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 	// Language code for localized names (e.g. en, de, fr)
 	Lang param.Field[string] `query:"lang"`
 	// Legacy shorthand. Latitude. Use near param instead.

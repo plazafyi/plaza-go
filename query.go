@@ -5,9 +5,11 @@ package githubcomplazafyiplazago
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/plazafyi/plaza-go/internal/apijson"
+	"github.com/plazafyi/plaza-go/internal/apiquery"
 	"github.com/plazafyi/plaza-go/internal/param"
 	"github.com/plazafyi/plaza-go/internal/requestconfig"
 	"github.com/plazafyi/plaza-go/option"
@@ -41,10 +43,10 @@ func (r *QueryService) Execute(ctx context.Context, body QueryExecuteParams, opt
 }
 
 // Execute an Overpass QL query
-func (r *QueryService) Overpass(ctx context.Context, body QueryOverpassParams, opts ...option.RequestOption) (res *FeatureCollection, err error) {
+func (r *QueryService) Overpass(ctx context.Context, params QueryOverpassParams, opts ...option.RequestOption) (res *FeatureCollection, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "api/v1/overpass"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
 
@@ -218,10 +220,20 @@ type QueryOverpassParams struct {
 	// Overpass QL query request. The query is executed against Plaza's OSM database
 	// and results are returned as GeoJSON.
 	OverpassQuery OverpassQueryParam `json:"overpass_query" api:"required"`
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 }
 
 func (r QueryOverpassParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r.OverpassQuery)
+}
+
+// URLQuery serializes [QueryOverpassParams]'s query parameters as `url.Values`.
+func (r QueryOverpassParams) URLQuery() (v url.Values) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }
 
 type QuerySparqlParams struct {

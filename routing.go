@@ -76,10 +76,10 @@ func (r *RoutingService) NearestPost(ctx context.Context, body RoutingNearestPos
 }
 
 // Calculate a route between two points
-func (r *RoutingService) Route(ctx context.Context, body RoutingRouteParams, opts ...option.RequestOption) (res *RouteResult, err error) {
+func (r *RoutingService) Route(ctx context.Context, params RoutingRouteParams, opts ...option.RequestOption) (res *RouteResult, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "api/v1/route"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
 
@@ -693,6 +693,8 @@ type RoutingIsochroneParams struct {
 	Lng param.Field[float64] `query:"lng" api:"required"`
 	// Travel time in seconds (1-7200)
 	Time param.Field[float64] `query:"time" api:"required"`
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 	// Travel mode (auto, foot, bicycle)
 	Mode param.Field[string] `query:"mode"`
 	// Comma-separated property fields to include
@@ -722,6 +724,8 @@ type RoutingIsochronePostParams struct {
 	Lng param.Field[float64] `query:"lng" api:"required"`
 	// Travel time in seconds (1-7200)
 	Time param.Field[float64] `query:"time" api:"required"`
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 	// Travel mode (auto, foot, bicycle)
 	Mode param.Field[string] `query:"mode"`
 	// Comma-separated property fields to include
@@ -808,8 +812,18 @@ type RoutingRouteParams struct {
 	// coordinate objects. Supports optional waypoints, alternative routes,
 	// turn-by-turn steps, and EV routing parameters.
 	RouteRequest RouteRequestParam `json:"route_request" api:"required"`
+	// Response format for alternatives: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 }
 
 func (r RoutingRouteParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r.RouteRequest)
+}
+
+// URLQuery serializes [RoutingRouteParams]'s query parameters as `url.Values`.
+func (r RoutingRouteParams) URLQuery() (v url.Values) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }

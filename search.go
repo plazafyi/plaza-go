@@ -54,6 +54,8 @@ type SearchQueryParams struct {
 	Q param.Field[string] `query:"q" api:"required"`
 	// Cursor for pagination
 	Cursor param.Field[string] `query:"cursor"`
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 	// Maximum results (default 25, max 100)
 	Limit param.Field[int64] `query:"limit"`
 	// Comma-separated property fields to include
@@ -79,6 +81,8 @@ type SearchQueryPostParams struct {
 	Q param.Field[string] `query:"q" api:"required"`
 	// Cursor for pagination
 	Cursor param.Field[string] `query:"cursor"`
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 	// Maximum results (default 25, max 100)
 	Limit param.Field[int64] `query:"limit"`
 	// Comma-separated property fields to include

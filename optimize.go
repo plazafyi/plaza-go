@@ -7,10 +7,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"reflect"
 	"slices"
 
 	"github.com/plazafyi/plaza-go/internal/apijson"
+	"github.com/plazafyi/plaza-go/internal/apiquery"
 	"github.com/plazafyi/plaza-go/internal/param"
 	"github.com/plazafyi/plaza-go/internal/requestconfig"
 	"github.com/plazafyi/plaza-go/option"
@@ -37,10 +39,10 @@ func NewOptimizeService(opts ...option.RequestOption) (r *OptimizeService) {
 }
 
 // Optimize route through waypoints
-func (r *OptimizeService) New(ctx context.Context, body OptimizeNewParams, opts ...option.RequestOption) (res *OptimizeResult, err error) {
+func (r *OptimizeService) New(ctx context.Context, params OptimizeNewParams, opts ...option.RequestOption) (res *OptimizeResult, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "api/v1/optimize"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
 
@@ -425,8 +427,18 @@ type OptimizeNewParams struct {
 	// to visit a set of waypoints. Minimum 2 waypoints, maximum 50. For large inputs,
 	// the request may be processed asynchronously.
 	OptimizeRequest OptimizeRequestParam `json:"optimize_request" api:"required"`
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 }
 
 func (r OptimizeNewParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r.OptimizeRequest)
+}
+
+// URLQuery serializes [OptimizeNewParams]'s query parameters as `url.Values`.
+func (r OptimizeNewParams) URLQuery() (v url.Values) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }
