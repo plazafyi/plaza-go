@@ -62,10 +62,9 @@ func main() {
 		option.WithAPIKey("My API Key"), // defaults to os.LookupEnv("PLAZA_API_KEY")
 		option.WithEnvironmentLocal(),   // defaults to option.WithEnvironmentProduction()
 	)
-	featureCollection, err := client.Elements.Nearby(context.TODO(), githubcomplazafyiplazago.ElementNearbyParams{
-		Lat:    githubcomplazafyiplazago.F(48.858400),
-		Lng:    githubcomplazafyiplazago.F(0.000000),
-		Radius: githubcomplazafyiplazago.F(int64(500)),
+	featureCollection, err := client.Elements.Query(context.TODO(), githubcomplazafyiplazago.ElementQueryParams{
+		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
+		Radius: githubcomplazafyiplazago.F(500.000000),
 	})
 	if err != nil {
 		panic(err.Error())
@@ -159,7 +158,7 @@ client := githubcomplazafyiplazago.NewClient(
 	option.WithHeader("X-Some-Header", "custom_header_info"),
 )
 
-client.Elements.Nearby(context.TODO(), ...,
+client.Elements.Query(context.TODO(), ...,
 	// Override the header
 	option.WithHeader("X-Some-Header", "some_other_custom_header_info"),
 	// Add an undocumented field to the request body, using sjson syntax
@@ -188,10 +187,9 @@ When the API returns a non-success status code, we return an error with type
 To handle errors, we recommend that you use the `errors.As` pattern:
 
 ```go
-_, err := client.Elements.Nearby(context.TODO(), githubcomplazafyiplazago.ElementNearbyParams{
-	Lat:    githubcomplazafyiplazago.F(48.858400),
-	Lng:    githubcomplazafyiplazago.F(0.000000),
-	Radius: githubcomplazafyiplazago.F(int64(500)),
+_, err := client.Elements.Query(context.TODO(), githubcomplazafyiplazago.ElementQueryParams{
+	Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
+	Radius: githubcomplazafyiplazago.F(500.000000),
 })
 if err != nil {
 	var apierr *githubcomplazafyiplazago.Error
@@ -199,7 +197,7 @@ if err != nil {
 		println(string(apierr.DumpRequest(true)))  // Prints the serialized HTTP request
 		println(string(apierr.DumpResponse(true))) // Prints the serialized HTTP response
 	}
-	panic(err.Error()) // GET "/api/v1/features/nearby": 400 Bad Request { ... }
+	panic(err.Error()) // GET "/api/v1/features": 400 Bad Request { ... }
 }
 ```
 
@@ -217,12 +215,11 @@ To set a per-retry timeout, use `option.WithRequestTimeout()`.
 // This sets the timeout for the request, including all the retries.
 ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 defer cancel()
-client.Elements.Nearby(
+client.Elements.Query(
 	ctx,
-	githubcomplazafyiplazago.ElementNearbyParams{
-		Lat:    githubcomplazafyiplazago.F(48.858400),
-		Lng:    githubcomplazafyiplazago.F(0.000000),
-		Radius: githubcomplazafyiplazago.F(int64(500)),
+	githubcomplazafyiplazago.ElementQueryParams{
+		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
+		Radius: githubcomplazafyiplazago.F(500.000000),
 	},
 	// This sets the per-retry timeout
 	option.WithRequestTimeout(20*time.Second),
@@ -257,12 +254,11 @@ client := githubcomplazafyiplazago.NewClient(
 )
 
 // Override per-request:
-client.Elements.Nearby(
+client.Elements.Query(
 	context.TODO(),
-	githubcomplazafyiplazago.ElementNearbyParams{
-		Lat:    githubcomplazafyiplazago.F(48.858400),
-		Lng:    githubcomplazafyiplazago.F(0.000000),
-		Radius: githubcomplazafyiplazago.F(int64(500)),
+	githubcomplazafyiplazago.ElementQueryParams{
+		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
+		Radius: githubcomplazafyiplazago.F(500.000000),
 	},
 	option.WithMaxRetries(5),
 )
@@ -276,12 +272,11 @@ you need to examine response headers, status codes, or other details.
 ```go
 // Create a variable to store the HTTP response
 var response *http.Response
-featureCollection, err := client.Elements.Nearby(
+featureCollection, err := client.Elements.Query(
 	context.TODO(),
-	githubcomplazafyiplazago.ElementNearbyParams{
-		Lat:    githubcomplazafyiplazago.F(48.858400),
-		Lng:    githubcomplazafyiplazago.F(0.000000),
-		Radius: githubcomplazafyiplazago.F(int64(500)),
+	githubcomplazafyiplazago.ElementQueryParams{
+		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
+		Radius: githubcomplazafyiplazago.F(500.000000),
 	},
 	option.WithResponseInto(&response),
 )

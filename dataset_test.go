@@ -26,12 +26,12 @@ func TestDatasetNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Datasets.New(context.TODO(), githubcomplazafyiplazago.DatasetNewParams{
-		Name:        githubcomplazafyiplazago.F("name"),
-		Slug:        githubcomplazafyiplazago.F("slug"),
+		Name:        githubcomplazafyiplazago.F("NYC Bike Lanes"),
+		Slug:        githubcomplazafyiplazago.F("nyc-bike-lanes"),
 		Attribution: githubcomplazafyiplazago.F("attribution"),
 		Description: githubcomplazafyiplazago.F("description"),
 		License:     githubcomplazafyiplazago.F("license"),
-		SourceURL:   githubcomplazafyiplazago.F("source_url"),
+		SourceURL:   githubcomplazafyiplazago.F("https://example.com"),
 	})
 	if err != nil {
 		var apierr *githubcomplazafyiplazago.Error
@@ -124,8 +124,16 @@ func TestDatasetFeaturesWithOptionalParams(t *testing.T) {
 		context.TODO(),
 		"id",
 		githubcomplazafyiplazago.DatasetFeaturesParams{
-			Cursor: githubcomplazafyiplazago.F("cursor"),
-			Limit:  githubcomplazafyiplazago.F(int64(0)),
+			Cursor:          githubcomplazafyiplazago.F("cursor"),
+			Limit:           githubcomplazafyiplazago.F(int64(0)),
+			OutputBuffer:    githubcomplazafyiplazago.F(0.000000),
+			OutputCentroid:  githubcomplazafyiplazago.F(true),
+			OutputFields:    githubcomplazafyiplazago.F("output[fields]"),
+			OutputGeometry:  githubcomplazafyiplazago.F(true),
+			OutputInclude:   githubcomplazafyiplazago.F("output[include]"),
+			OutputPrecision: githubcomplazafyiplazago.F(int64(0)),
+			OutputSimplify:  githubcomplazafyiplazago.F(0.000000),
+			OutputSort:      githubcomplazafyiplazago.F("output[sort]"),
 		},
 	)
 	if err != nil {

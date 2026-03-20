@@ -27,12 +27,18 @@ func TestOptimizeNewWithOptionalParams(t *testing.T) {
 	)
 	_, err := client.Optimize.New(context.TODO(), githubcomplazafyiplazago.OptimizeNewParams{
 		OptimizeRequest: githubcomplazafyiplazago.OptimizeRequestParam{
-			Waypoints: githubcomplazafyiplazago.F(githubcomplazafyiplazago.GeoJsonGeometryParam{
-				Coordinates: githubcomplazafyiplazago.F[githubcomplazafyiplazago.GeoJsonGeometryCoordinatesUnionParam](githubcomplazafyiplazago.GeoJsonGeometryCoordinatesArrayParam([]float64{0.000000})),
-				Type:        githubcomplazafyiplazago.F(githubcomplazafyiplazago.GeoJsonGeometryTypePoint),
-			}),
+			Waypoints: githubcomplazafyiplazago.F([]githubcomplazafyiplazago.OptimizeRequestWaypointParam{{
+				Lat: githubcomplazafyiplazago.F(48.856600),
+				Lng: githubcomplazafyiplazago.F(2.352200),
+			}, {
+				Lat: githubcomplazafyiplazago.F(48.860600),
+				Lng: githubcomplazafyiplazago.F(2.337600),
+			}, {
+				Lat: githubcomplazafyiplazago.F(48.858400),
+				Lng: githubcomplazafyiplazago.F(2.294500),
+			}}),
 			Mode:      githubcomplazafyiplazago.F(githubcomplazafyiplazago.OptimizeRequestModeAuto),
-			Roundtrip: githubcomplazafyiplazago.F(true),
+			Roundtrip: githubcomplazafyiplazago.F(false),
 		},
 	})
 	if err != nil {
