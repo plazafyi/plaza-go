@@ -13,7 +13,7 @@ import (
 	"github.com/plazafyi/plaza-go/option"
 )
 
-func TestElevationBatch(t *testing.T) {
+func TestElevationBatchWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -33,6 +33,7 @@ func TestElevationBatch(t *testing.T) {
 			Lat: githubcomplazafyiplazago.F(45.764000),
 			Lng: githubcomplazafyiplazago.F(4.835700),
 		}}),
+		Format: githubcomplazafyiplazago.F("format"),
 	})
 	if err != nil {
 		var apierr *githubcomplazafyiplazago.Error
@@ -56,6 +57,7 @@ func TestElevationLookupWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Elevation.Lookup(context.TODO(), githubcomplazafyiplazago.ElevationLookupParams{
+		Format:          githubcomplazafyiplazago.F("format"),
 		Lat:             githubcomplazafyiplazago.F(0.000000),
 		Lng:             githubcomplazafyiplazago.F(0.000000),
 		Locations:       githubcomplazafyiplazago.F("locations"),
@@ -85,6 +87,7 @@ func TestElevationLookupPostWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Elevation.LookupPost(context.TODO(), githubcomplazafyiplazago.ElevationLookupPostParams{
+		Format:          githubcomplazafyiplazago.F("format"),
 		Lat:             githubcomplazafyiplazago.F(0.000000),
 		Lng:             githubcomplazafyiplazago.F(0.000000),
 		Locations:       githubcomplazafyiplazago.F("locations"),

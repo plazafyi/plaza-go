@@ -40,7 +40,7 @@ func TestQueryExecute(t *testing.T) {
 	}
 }
 
-func TestQueryOverpass(t *testing.T) {
+func TestQueryOverpassWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -56,6 +56,7 @@ func TestQueryOverpass(t *testing.T) {
 		OverpassQuery: githubcomplazafyiplazago.OverpassQueryParam{
 			Data: githubcomplazafyiplazago.F("[out:json];node[amenity=cafe](around:500,48.8566,2.3522);out body;"),
 		},
+		Format: githubcomplazafyiplazago.F("format"),
 	})
 	if err != nil {
 		var apierr *githubcomplazafyiplazago.Error
