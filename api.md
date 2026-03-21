@@ -144,18 +144,15 @@ Methods:
 Params Types:
 
 - <a href="https://pkg.go.dev/github.com/plazafyi/plaza-go">githubcomplazafyiplazago</a>.<a href="https://pkg.go.dev/github.com/plazafyi/plaza-go#OverpassQueryParam">OverpassQueryParam</a>
-- <a href="https://pkg.go.dev/github.com/plazafyi/plaza-go">githubcomplazafyiplazago</a>.<a href="https://pkg.go.dev/github.com/plazafyi/plaza-go#SparqlQueryParam">SparqlQueryParam</a>
 
 Response Types:
 
-- <a href="https://pkg.go.dev/github.com/plazafyi/plaza-go">githubcomplazafyiplazago</a>.<a href="https://pkg.go.dev/github.com/plazafyi/plaza-go#SparqlResult">SparqlResult</a>
 - <a href="https://pkg.go.dev/github.com/plazafyi/plaza-go">githubcomplazafyiplazago</a>.<a href="https://pkg.go.dev/github.com/plazafyi/plaza-go#QueryExecuteResponse">QueryExecuteResponse</a>
 
 Methods:
 
 - <code title="post /api/v1/query">client.Query.<a href="https://pkg.go.dev/github.com/plazafyi/plaza-go#QueryService.Execute">Execute</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/plazafyi/plaza-go">githubcomplazafyiplazago</a>.<a href="https://pkg.go.dev/github.com/plazafyi/plaza-go#QueryExecuteParams">QueryExecuteParams</a>) (\*<a href="https://pkg.go.dev/github.com/plazafyi/plaza-go">githubcomplazafyiplazago</a>.<a href="https://pkg.go.dev/github.com/plazafyi/plaza-go#QueryExecuteResponse">QueryExecuteResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="post /api/v1/overpass">client.Query.<a href="https://pkg.go.dev/github.com/plazafyi/plaza-go#QueryService.Overpass">Overpass</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, params <a href="https://pkg.go.dev/github.com/plazafyi/plaza-go">githubcomplazafyiplazago</a>.<a href="https://pkg.go.dev/github.com/plazafyi/plaza-go#QueryOverpassParams">QueryOverpassParams</a>) (\*<a href="https://pkg.go.dev/github.com/plazafyi/plaza-go">githubcomplazafyiplazago</a>.<a href="https://pkg.go.dev/github.com/plazafyi/plaza-go#FeatureCollection">FeatureCollection</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="post /api/v1/sparql">client.Query.<a href="https://pkg.go.dev/github.com/plazafyi/plaza-go#QueryService.Sparql">Sparql</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/plazafyi/plaza-go">githubcomplazafyiplazago</a>.<a href="https://pkg.go.dev/github.com/plazafyi/plaza-go#QuerySparqlParams">QuerySparqlParams</a>) (\*<a href="https://pkg.go.dev/github.com/plazafyi/plaza-go">githubcomplazafyiplazago</a>.<a href="https://pkg.go.dev/github.com/plazafyi/plaza-go#SparqlResult">SparqlResult</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
 # Tiles
 
