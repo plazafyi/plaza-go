@@ -34,108 +34,39 @@ func NewQueryService(opts ...option.RequestOption) (r *QueryService) {
 	return
 }
 
-// Execute a multi-step query pipeline
-func (r *QueryService) Execute(ctx context.Context, body QueryExecuteParams, opts ...option.RequestOption) (res *QueryExecuteResponse, err error) {
+// Execute a PlazaQL query
+func (r *QueryService) Execute(ctx context.Context, params QueryExecuteParams, opts ...option.RequestOption) (res *FeatureCollection, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "api/v1/query"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return res, err
-}
-
-// Execute an Overpass QL query
-func (r *QueryService) Overpass(ctx context.Context, params QueryOverpassParams, opts ...option.RequestOption) (res *FeatureCollection, err error) {
-	opts = slices.Concat(r.Options, opts)
-	path := "api/v1/overpass"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
 
-// Overpass QL query request. The query is executed against Plaza's OSM database
-// and results are returned as GeoJSON.
-type OverpassQueryParam struct {
-	// Overpass QL query string
+// PlazaQL query request. The query is executed against Plaza's OSM database and
+// results are returned as GeoJSON.
+type PlazaqlQueryParam struct {
+	// PlazaQL query string
 	Data param.Field[string] `json:"data" api:"required"`
 }
 
-func (r OverpassQueryParam) MarshalJSON() (data []byte, err error) {
+func (r PlazaqlQueryParam) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
-}
-
-// Pipeline execution result containing the output of each step.
-type QueryExecuteResponse struct {
-	// Results from each pipeline step in execution order
-	Steps []map[string]interface{} `json:"steps" api:"required"`
-	JSON  queryExecuteResponseJSON `json:"-"`
-}
-
-// queryExecuteResponseJSON contains the JSON metadata for the struct
-// [QueryExecuteResponse]
-type queryExecuteResponseJSON struct {
-	Steps       apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *QueryExecuteResponse) UnmarshalJSON(data []byte) (err error) {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r queryExecuteResponseJSON) RawJSON() string {
-	return r.raw
 }
 
 type QueryExecuteParams struct {
-	// Ordered list of query steps to execute
-	Steps param.Field[[]QueryExecuteParamsStep] `json:"steps" api:"required"`
-}
-
-func (r QueryExecuteParams) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-// A single pipeline step
-type QueryExecuteParamsStep struct {
-	// Step type: `overpass`, `filter`, or `transform`
-	Type param.Field[QueryExecuteParamsStepsType] `json:"type" api:"required"`
-	// Query string for this step (required for overpass steps)
-	Query param.Field[string] `json:"query"`
-}
-
-func (r QueryExecuteParamsStep) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-// Step type: `overpass`, `filter`, or `transform`
-type QueryExecuteParamsStepsType string
-
-const (
-	QueryExecuteParamsStepsTypeOverpass  QueryExecuteParamsStepsType = "overpass"
-	QueryExecuteParamsStepsTypeFilter    QueryExecuteParamsStepsType = "filter"
-	QueryExecuteParamsStepsTypeTransform QueryExecuteParamsStepsType = "transform"
-)
-
-func (r QueryExecuteParamsStepsType) IsKnown() bool {
-	switch r {
-	case QueryExecuteParamsStepsTypeOverpass, QueryExecuteParamsStepsTypeFilter, QueryExecuteParamsStepsTypeTransform:
-		return true
-	}
-	return false
-}
-
-type QueryOverpassParams struct {
-	// Overpass QL query request. The query is executed against Plaza's OSM database
-	// and results are returned as GeoJSON.
-	OverpassQuery OverpassQueryParam `json:"overpass_query" api:"required"`
+	// PlazaQL query request. The query is executed against Plaza's OSM database and
+	// results are returned as GeoJSON.
+	PlazaqlQuery PlazaqlQueryParam `json:"plazaql_query" api:"required"`
 	// Response format: json (default), geojson, csv, ndjson
 	Format param.Field[string] `query:"format"`
 }
 
-func (r QueryOverpassParams) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r.OverpassQuery)
+func (r QueryExecuteParams) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r.PlazaqlQuery)
 }
 
-// URLQuery serializes [QueryOverpassParams]'s query parameters as `url.Values`.
-func (r QueryOverpassParams) URLQuery() (v url.Values) {
+// URLQuery serializes [QueryExecuteParams]'s query parameters as `url.Values`.
+func (r QueryExecuteParams) URLQuery() (v url.Values) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
