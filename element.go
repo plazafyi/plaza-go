@@ -233,6 +233,9 @@ type ElementQueryParams struct {
 	Crosses param.Field[string] `query:"crosses"`
 	// Cursor for pagination
 	Cursor param.Field[string] `query:"cursor"`
+	// Response format. json (default) returns paginated GeoJSON. geojson/csv/ndjson
+	// stream via chunked transfer encoding.
+	Format param.Field[string] `query:"format"`
 	// Legacy shorthand. H3 cell index. Use spatial predicates instead.
 	H3 param.Field[string] `query:"h3"`
 	// Geometry that features must intersect
@@ -285,6 +288,9 @@ type ElementQueryPostParams struct {
 	Crosses param.Field[string] `query:"crosses"`
 	// Cursor for pagination
 	Cursor param.Field[string] `query:"cursor"`
+	// Response format. json (default) returns paginated GeoJSON. geojson/csv/ndjson
+	// stream via chunked transfer encoding.
+	Format param.Field[string] `query:"format"`
 	// Legacy shorthand. H3 cell index. Use spatial predicates instead.
 	H3 param.Field[string] `query:"h3"`
 	// Geometry that features must intersect

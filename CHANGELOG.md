@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.3.0 (2026-03-22)
+
+Full Changelog: [v0.2.0...v0.3.0](https://github.com/plazafyi/plaza-go/compare/v0.2.0...v0.3.0)
+
+### Features
+
+* **api:** api update ([da463ba](https://github.com/plazafyi/plaza-go/commit/da463ba2e935210da0f39c8222df9dcd18d8ffe6))
+* **api:** api update ([6f9edd9](https://github.com/plazafyi/plaza-go/commit/6f9edd918a4ef5a7ca628730cb2d6f30ac7fc7d6))
+* **api:** api update ([3b6e112](https://github.com/plazafyi/plaza-go/commit/3b6e112fc634023a56937cc8bfd6fc15dbd9a37c))
+
+
+### Chores
+
+* **tests:** bump steady to v0.19.4 ([3742de2](https://github.com/plazafyi/plaza-go/commit/3742de291cf3ab17ff62797587344e190c9fe3d0))
+* **tests:** bump steady to v0.19.5 ([68c1af4](https://github.com/plazafyi/plaza-go/commit/68c1af45a18ee1252d6c0aa5daf20498480d5629))
+
 ## 0.2.0 (2026-03-20)
 
 Full Changelog: [v0.1.1...v0.2.0](https://github.com/plazafyi/plaza-go/compare/v0.1.1...v0.2.0)
