@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.3.0 (2026-03-28)
+
+Full Changelog: [v0.2.0...v0.3.0](https://github.com/plazafyi/plaza-go/compare/v0.2.0...v0.3.0)
+
+### Features
+
+* **api:** api update ([da463ba](https://github.com/plazafyi/plaza-go/commit/da463ba2e935210da0f39c8222df9dcd18d8ffe6))
+* **api:** api update ([6f9edd9](https://github.com/plazafyi/plaza-go/commit/6f9edd918a4ef5a7ca628730cb2d6f30ac7fc7d6))
+* **api:** api update ([3b6e112](https://github.com/plazafyi/plaza-go/commit/3b6e112fc634023a56937cc8bfd6fc15dbd9a37c))
+* **internal:** support comma format in multipart form encoding ([a87a161](https://github.com/plazafyi/plaza-go/commit/a87a1617b6195407b4fd2a35f7b3474580cb42a4))
+
+
+### Bug Fixes
+
+* prevent duplicate ? in query params ([807a4f0](https://github.com/plazafyi/plaza-go/commit/807a4f02324cd482bf89f2bd7738739f724f877d))
+
+
+### Chores
+
+* **ci:** skip lint on metadata-only changes ([68066fe](https://github.com/plazafyi/plaza-go/commit/68066fee5f9e9b017cbdcb6587fcf95eb032b638))
+* **ci:** support opting out of skipping builds on metadata-only commits ([4f60d4a](https://github.com/plazafyi/plaza-go/commit/4f60d4a3a0376157fca6a462d30ab1396f2c0d86))
+* **internal:** update gitignore ([f1e52fd](https://github.com/plazafyi/plaza-go/commit/f1e52fd2468db16010d7df1abafafa30c7b27d44))
+* remove unnecessary error check for url parsing ([79c47aa](https://github.com/plazafyi/plaza-go/commit/79c47aa7ef1f3395f96ba81e4ab77750564936d9))
+* **tests:** bump steady to v0.19.4 ([3742de2](https://github.com/plazafyi/plaza-go/commit/3742de291cf3ab17ff62797587344e190c9fe3d0))
+* **tests:** bump steady to v0.19.5 ([68c1af4](https://github.com/plazafyi/plaza-go/commit/68c1af45a18ee1252d6c0aa5daf20498480d5629))
+* **tests:** bump steady to v0.19.6 ([24d8df5](https://github.com/plazafyi/plaza-go/commit/24d8df56708e579cfe1dca74cc0c0a7caf6708d4))
+* **tests:** bump steady to v0.19.7 ([e96840d](https://github.com/plazafyi/plaza-go/commit/e96840d270861bde7e7560e64075429cb72c6e10))
+
 ## 0.2.0 (2026-03-20)
 
 Full Changelog: [v0.1.1...v0.2.0](https://github.com/plazafyi/plaza-go/compare/v0.1.1...v0.2.0)
