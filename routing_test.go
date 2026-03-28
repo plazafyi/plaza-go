@@ -30,6 +30,7 @@ func TestRoutingIsochroneWithOptionalParams(t *testing.T) {
 		Lat:             githubcomplazafyiplazago.F(0.000000),
 		Lng:             githubcomplazafyiplazago.F(0.000000),
 		Time:            githubcomplazafyiplazago.F(0.000000),
+		Format:          githubcomplazafyiplazago.F("format"),
 		Mode:            githubcomplazafyiplazago.F("mode"),
 		OutputFields:    githubcomplazafyiplazago.F("output[fields]"),
 		OutputGeometry:  githubcomplazafyiplazago.F(true),
@@ -62,6 +63,7 @@ func TestRoutingIsochronePostWithOptionalParams(t *testing.T) {
 		Lat:             githubcomplazafyiplazago.F(0.000000),
 		Lng:             githubcomplazafyiplazago.F(0.000000),
 		Time:            githubcomplazafyiplazago.F(0.000000),
+		Format:          githubcomplazafyiplazago.F("format"),
 		Mode:            githubcomplazafyiplazago.F("mode"),
 		OutputFields:    githubcomplazafyiplazago.F("output[fields]"),
 		OutputGeometry:  githubcomplazafyiplazago.F(true),
@@ -218,6 +220,7 @@ func TestRoutingRouteWithOptionalParams(t *testing.T) {
 				Lng: githubcomplazafyiplazago.F(2.352200),
 			}}),
 		},
+		Format: githubcomplazafyiplazago.F("format"),
 	})
 	if err != nil {
 		var apierr *githubcomplazafyiplazago.Error

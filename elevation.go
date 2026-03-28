@@ -35,10 +35,10 @@ func NewElevationService(opts ...option.RequestOption) (r *ElevationService) {
 }
 
 // Look up elevation for multiple coordinates
-func (r *ElevationService) Batch(ctx context.Context, body ElevationBatchParams, opts ...option.RequestOption) (res *ElevationBatchResult, err error) {
+func (r *ElevationService) Batch(ctx context.Context, params ElevationBatchParams, opts ...option.RequestOption) (res *ElevationBatchResult, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "api/v1/elevation/batch"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
 
@@ -278,10 +278,20 @@ func (r ElevationProfileResultType) IsKnown() bool {
 type ElevationBatchParams struct {
 	// Coordinates to look up elevations for (max 50)
 	Coordinates param.Field[[]ElevationBatchParamsCoordinate] `json:"coordinates" api:"required"`
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 }
 
 func (r ElevationBatchParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
+}
+
+// URLQuery serializes [ElevationBatchParams]'s query parameters as `url.Values`.
+func (r ElevationBatchParams) URLQuery() (v url.Values) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }
 
 // Geographic coordinate as a JSON object with `lat` and `lng` fields.
@@ -297,6 +307,8 @@ func (r ElevationBatchParamsCoordinate) MarshalJSON() (data []byte, err error) {
 }
 
 type ElevationLookupParams struct {
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 	// Latitude (single point)
 	Lat param.Field[float64] `query:"lat"`
 	// Longitude (single point)
@@ -320,6 +332,8 @@ func (r ElevationLookupParams) URLQuery() (v url.Values) {
 }
 
 type ElevationLookupPostParams struct {
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 	// Latitude (single point)
 	Lat param.Field[float64] `query:"lat"`
 	// Longitude (single point)

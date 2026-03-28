@@ -125,6 +125,7 @@ func TestDatasetFeaturesWithOptionalParams(t *testing.T) {
 		"id",
 		githubcomplazafyiplazago.DatasetFeaturesParams{
 			Cursor:          githubcomplazafyiplazago.F("cursor"),
+			Format:          githubcomplazafyiplazago.F("format"),
 			Limit:           githubcomplazafyiplazago.F(int64(0)),
 			OutputBuffer:    githubcomplazafyiplazago.F(0.000000),
 			OutputCentroid:  githubcomplazafyiplazago.F(true),

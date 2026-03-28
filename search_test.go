@@ -28,6 +28,7 @@ func TestSearchQueryWithOptionalParams(t *testing.T) {
 	_, err := client.Search.Query(context.TODO(), githubcomplazafyiplazago.SearchQueryParams{
 		Q:               githubcomplazafyiplazago.F("q"),
 		Cursor:          githubcomplazafyiplazago.F("cursor"),
+		Format:          githubcomplazafyiplazago.F("format"),
 		Limit:           githubcomplazafyiplazago.F(int64(0)),
 		OutputFields:    githubcomplazafyiplazago.F("output[fields]"),
 		OutputInclude:   githubcomplazafyiplazago.F("output[include]"),
@@ -58,6 +59,7 @@ func TestSearchQueryPostWithOptionalParams(t *testing.T) {
 	_, err := client.Search.QueryPost(context.TODO(), githubcomplazafyiplazago.SearchQueryPostParams{
 		Q:               githubcomplazafyiplazago.F("q"),
 		Cursor:          githubcomplazafyiplazago.F("cursor"),
+		Format:          githubcomplazafyiplazago.F("format"),
 		Limit:           githubcomplazafyiplazago.F(int64(0)),
 		OutputFields:    githubcomplazafyiplazago.F("output[fields]"),
 		OutputInclude:   githubcomplazafyiplazago.F("output[include]"),
