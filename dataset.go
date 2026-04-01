@@ -181,6 +181,8 @@ func (r DatasetNewParams) MarshalJSON() (data []byte, err error) {
 type DatasetFeaturesParams struct {
 	// Cursor for pagination
 	Cursor param.Field[string] `query:"cursor"`
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
 	// Maximum results
 	Limit param.Field[int64] `query:"limit"`
 	// Buffer geometry by meters

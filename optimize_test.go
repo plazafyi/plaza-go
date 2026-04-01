@@ -40,6 +40,7 @@ func TestOptimizeNewWithOptionalParams(t *testing.T) {
 			Mode:      githubcomplazafyiplazago.F(githubcomplazafyiplazago.OptimizeRequestModeAuto),
 			Roundtrip: githubcomplazafyiplazago.F(false),
 		},
+		Format: githubcomplazafyiplazago.F("format"),
 	})
 	if err != nil {
 		var apierr *githubcomplazafyiplazago.Error

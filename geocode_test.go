@@ -28,6 +28,7 @@ func TestGeocodeAutocompleteWithOptionalParams(t *testing.T) {
 	_, err := client.Geocode.Autocomplete(context.TODO(), githubcomplazafyiplazago.GeocodeAutocompleteParams{
 		Q:           githubcomplazafyiplazago.F("q"),
 		CountryCode: githubcomplazafyiplazago.F("country_code"),
+		Format:      githubcomplazafyiplazago.F("format"),
 		Lang:        githubcomplazafyiplazago.F("lang"),
 		Lat:         githubcomplazafyiplazago.F(0.000000),
 		Layer:       githubcomplazafyiplazago.F("layer"),
@@ -58,6 +59,7 @@ func TestGeocodeAutocompletePostWithOptionalParams(t *testing.T) {
 	_, err := client.Geocode.AutocompletePost(context.TODO(), githubcomplazafyiplazago.GeocodeAutocompletePostParams{
 		Q:           githubcomplazafyiplazago.F("q"),
 		CountryCode: githubcomplazafyiplazago.F("country_code"),
+		Format:      githubcomplazafyiplazago.F("format"),
 		Lang:        githubcomplazafyiplazago.F("lang"),
 		Lat:         githubcomplazafyiplazago.F(0.000000),
 		Layer:       githubcomplazafyiplazago.F("layer"),
@@ -113,6 +115,7 @@ func TestGeocodeForwardWithOptionalParams(t *testing.T) {
 		Q:           githubcomplazafyiplazago.F("q"),
 		Bbox:        githubcomplazafyiplazago.F("bbox"),
 		CountryCode: githubcomplazafyiplazago.F("country_code"),
+		Format:      githubcomplazafyiplazago.F("format"),
 		Lang:        githubcomplazafyiplazago.F("lang"),
 		Lat:         githubcomplazafyiplazago.F(0.000000),
 		Layer:       githubcomplazafyiplazago.F("layer"),
@@ -144,6 +147,7 @@ func TestGeocodeForwardPostWithOptionalParams(t *testing.T) {
 		Q:           githubcomplazafyiplazago.F("q"),
 		Bbox:        githubcomplazafyiplazago.F("bbox"),
 		CountryCode: githubcomplazafyiplazago.F("country_code"),
+		Format:      githubcomplazafyiplazago.F("format"),
 		Lang:        githubcomplazafyiplazago.F("lang"),
 		Lat:         githubcomplazafyiplazago.F(0.000000),
 		Layer:       githubcomplazafyiplazago.F("layer"),
@@ -172,6 +176,7 @@ func TestGeocodeReverseWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Geocode.Reverse(context.TODO(), githubcomplazafyiplazago.GeocodeReverseParams{
+		Format: githubcomplazafyiplazago.F("format"),
 		Lang:   githubcomplazafyiplazago.F("lang"),
 		Lat:    githubcomplazafyiplazago.F(0.000000),
 		Layer:  githubcomplazafyiplazago.F("layer"),
@@ -202,6 +207,7 @@ func TestGeocodeReversePostWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Geocode.ReversePost(context.TODO(), githubcomplazafyiplazago.GeocodeReversePostParams{
+		Format: githubcomplazafyiplazago.F("format"),
 		Lang:   githubcomplazafyiplazago.F("lang"),
 		Lat:    githubcomplazafyiplazago.F(0.000000),
 		Layer:  githubcomplazafyiplazago.F("layer"),
