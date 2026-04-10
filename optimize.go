@@ -97,9 +97,9 @@ func (r OptimizeCompletedResult) implementsOptimizeResult() {}
 
 // GeoJSON Point Feature representing an optimized waypoint with cost data.
 type OptimizeCompletedResultFeature struct {
-	// GeoJSON Geometry object per RFC 7946. Coordinates use [longitude, latitude]
-	// order. 3D coordinates [lng, lat, elevation] are used for elevation endpoints.
-	Geometry   GeoJsonGeometry                           `json:"geometry" api:"required"`
+	// GeoJSON Geometry object per RFC 7946. Discriminated union — the `type` field
+	// determines the coordinate structure.
+	Geometry   Geometry                                  `json:"geometry" api:"required"`
 	Properties OptimizeCompletedResultFeaturesProperties `json:"properties" api:"required"`
 	Type       OptimizeCompletedResultFeaturesType       `json:"type" api:"required"`
 	JSON       optimizeCompletedResultFeatureJSON        `json:"-"`
@@ -274,8 +274,8 @@ func (r OptimizeProcessingResultStatus) IsKnown() bool {
 // to visit a set of waypoints. Minimum 2 waypoints, maximum 50. For large inputs,
 // the request may be processed asynchronously.
 type OptimizeRequestParam struct {
-	// Waypoints to visit in optimized order (2-50 points)
-	Waypoints param.Field[[]OptimizeRequestWaypointParam] `json:"waypoints" api:"required"`
+	// GeoJSON MultiPoint geometry per RFC 7946. An array of positions.
+	Waypoints param.Field[MultiPointGeometryParam] `json:"waypoints" api:"required"`
 	// Travel mode (default: `auto`)
 	Mode param.Field[OptimizeRequestMode] `json:"mode"`
 	// Whether the route should return to the starting waypoint (default: true)
@@ -283,18 +283,6 @@ type OptimizeRequestParam struct {
 }
 
 func (r OptimizeRequestParam) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-// Geographic coordinate as a JSON object with `lat` and `lng` fields.
-type OptimizeRequestWaypointParam struct {
-	// Latitude in decimal degrees (-90 to 90)
-	Lat param.Field[float64] `json:"lat" api:"required"`
-	// Longitude in decimal degrees (-180 to 180)
-	Lng param.Field[float64] `json:"lng" api:"required"`
-}
-
-func (r OptimizeRequestWaypointParam) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 

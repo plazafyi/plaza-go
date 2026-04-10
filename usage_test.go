@@ -24,10 +24,7 @@ func TestUsage(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	featureCollection, err := client.Elements.Query(context.TODO(), githubcomplazafyiplazago.ElementQueryParams{
-		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
-		Radius: githubcomplazafyiplazago.F(500.000000),
-	})
+	featureCollection, err := client.Features.Query(context.TODO(), githubcomplazafyiplazago.FeatureQueryParams{})
 	if err != nil {
 		t.Error(err)
 		return
