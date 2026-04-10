@@ -17,7 +17,7 @@ import (
 // and instead use the [NewClient] method instead.
 type Client struct {
 	Options   []option.RequestOption
-	Elements  *ElementService
+	Features  *FeatureService
 	Datasets  *DatasetService
 	Geocode   *GeocodeService
 	Search    *SearchService
@@ -51,7 +51,7 @@ func NewClient(opts ...option.RequestOption) (r *Client) {
 
 	r = &Client{Options: opts}
 
-	r.Elements = NewElementService(opts...)
+	r.Features = NewFeatureService(opts...)
 	r.Datasets = NewDatasetService(opts...)
 	r.Geocode = NewGeocodeService(opts...)
 	r.Search = NewSearchService(opts...)

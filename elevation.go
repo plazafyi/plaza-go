@@ -34,27 +34,11 @@ func NewElevationService(opts ...option.RequestOption) (r *ElevationService) {
 	return
 }
 
-// Look up elevation for multiple coordinates
-func (r *ElevationService) Batch(ctx context.Context, params ElevationBatchParams, opts ...option.RequestOption) (res *ElevationBatchResult, err error) {
+// Look up elevation at one or more points
+func (r *ElevationService) Lookup(ctx context.Context, params ElevationLookupParams, opts ...option.RequestOption) (res *ElevationLookupResult, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "api/v1/elevation/batch"
+	path := "api/v1/elevation"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
-	return res, err
-}
-
-// Look up elevation at one or more points
-func (r *ElevationService) Lookup(ctx context.Context, query ElevationLookupParams, opts ...option.RequestOption) (res *ElevationLookupResult, err error) {
-	opts = slices.Concat(r.Options, opts)
-	path := "api/v1/elevation"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return res, err
-}
-
-// Look up elevation at one or more points
-func (r *ElevationService) LookupPost(ctx context.Context, body ElevationLookupPostParams, opts ...option.RequestOption) (res *ElevationLookupResult, err error) {
-	opts = slices.Concat(r.Options, opts)
-	path := "api/v1/elevation"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
 
@@ -66,41 +50,47 @@ func (r *ElevationService) Profile(ctx context.Context, body ElevationProfilePar
 	return res, err
 }
 
-// GeoJSON FeatureCollection of elevation Point Features with 3D coordinates. Order
-// matches the input coordinates array.
-type ElevationBatchResult struct {
-	// Elevation results in the same order as input coordinates
-	Features []ElevationLookupResult  `json:"features" api:"required"`
-	Type     ElevationBatchResultType `json:"type" api:"required"`
-	JSON     elevationBatchResultJSON `json:"-"`
+// Request body for elevation lookup. Accepts a single Point or a MultiPoint
+// geometry.
+type ElevationLookupRequestParam struct {
+	// Point or MultiPoint geometry to look up elevations for
+	Geometry param.Field[ElevationLookupRequestGeometryUnionParam] `json:"geometry" api:"required"`
 }
 
-// elevationBatchResultJSON contains the JSON metadata for the struct
-// [ElevationBatchResult]
-type elevationBatchResultJSON struct {
-	Features    apijson.Field
-	Type        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+func (r ElevationLookupRequestParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
 }
 
-func (r *ElevationBatchResult) UnmarshalJSON(data []byte) (err error) {
-	return apijson.UnmarshalRoot(data, r)
+// Point or MultiPoint geometry to look up elevations for
+type ElevationLookupRequestGeometryParam struct {
+	Coordinates param.Field[interface{}]                        `json:"coordinates" api:"required"`
+	Type        param.Field[ElevationLookupRequestGeometryType] `json:"type" api:"required"`
 }
 
-func (r elevationBatchResultJSON) RawJSON() string {
-	return r.raw
+func (r ElevationLookupRequestGeometryParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
 }
 
-type ElevationBatchResultType string
+func (r ElevationLookupRequestGeometryParam) implementsElevationLookupRequestGeometryUnionParam() {}
+
+// Point or MultiPoint geometry to look up elevations for
+//
+// Satisfied by [PointGeometryParam], [MultiPointGeometryParam],
+// [ElevationLookupRequestGeometryParam].
+type ElevationLookupRequestGeometryUnionParam interface {
+	implementsElevationLookupRequestGeometryUnionParam()
+}
+
+type ElevationLookupRequestGeometryType string
 
 const (
-	ElevationBatchResultTypeFeatureCollection ElevationBatchResultType = "FeatureCollection"
+	ElevationLookupRequestGeometryTypePoint      ElevationLookupRequestGeometryType = "Point"
+	ElevationLookupRequestGeometryTypeMultiPoint ElevationLookupRequestGeometryType = "MultiPoint"
 )
 
-func (r ElevationBatchResultType) IsKnown() bool {
+func (r ElevationLookupRequestGeometryType) IsKnown() bool {
 	switch r {
-	case ElevationBatchResultTypeFeatureCollection:
+	case ElevationLookupRequestGeometryTypePoint, ElevationLookupRequestGeometryTypeMultiPoint:
 		return true
 	}
 	return false
@@ -110,9 +100,9 @@ func (r ElevationBatchResultType) IsKnown() bool {
 // §3.1.1. The elevation is also available in `properties.elevation_m` for
 // convenience.
 type ElevationLookupResult struct {
-	// GeoJSON Geometry object per RFC 7946. Coordinates use [longitude, latitude]
-	// order. 3D coordinates [lng, lat, elevation] are used for elevation endpoints.
-	Geometry   GeoJsonGeometry                 `json:"geometry" api:"required"`
+	// GeoJSON Geometry object per RFC 7946. Discriminated union — the `type` field
+	// determines the coordinate structure.
+	Geometry   Geometry                        `json:"geometry" api:"required"`
 	Properties ElevationLookupResultProperties `json:"properties" api:"required"`
 	Type       ElevationLookupResultType       `json:"type" api:"required"`
 	JSON       elevationLookupResultJSON       `json:"-"`
@@ -172,26 +162,15 @@ func (r ElevationLookupResultType) IsKnown() bool {
 	return false
 }
 
-// Request body for elevation profile along a path. Provide at least 2 coordinates
-// defining the path. Maximum 50 coordinates per request.
+// Request body for elevation profile along a path. Provide a GeoJSON LineString
+// geometry defining the path.
 type ElevationProfileRequestParam struct {
-	// Path coordinates in order of travel (min 2, max 50)
-	Coordinates param.Field[[]ElevationProfileRequestCoordinateParam] `json:"coordinates" api:"required"`
+	// GeoJSON LineString geometry per RFC 7946. An ordered sequence of two or more
+	// positions.
+	Geometry param.Field[LineStringGeometryParam] `json:"geometry" api:"required"`
 }
 
 func (r ElevationProfileRequestParam) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-// Geographic coordinate as a JSON object with `lat` and `lng` fields.
-type ElevationProfileRequestCoordinateParam struct {
-	// Latitude in decimal degrees (-90 to 90)
-	Lat param.Field[float64] `json:"lat" api:"required"`
-	// Longitude in decimal degrees (-180 to 180)
-	Lng param.Field[float64] `json:"lng" api:"required"`
-}
-
-func (r ElevationProfileRequestCoordinateParam) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
@@ -199,9 +178,9 @@ func (r ElevationProfileRequestCoordinateParam) MarshalJSON() (data []byte, err 
 // representing the elevation profile along the input path. Summary statistics are
 // in properties.
 type ElevationProfileResult struct {
-	// GeoJSON Geometry object per RFC 7946. Coordinates use [longitude, latitude]
-	// order. 3D coordinates [lng, lat, elevation] are used for elevation endpoints.
-	Geometry GeoJsonGeometry `json:"geometry" api:"required"`
+	// GeoJSON Geometry object per RFC 7946. Discriminated union — the `type` field
+	// determines the coordinate structure.
+	Geometry Geometry `json:"geometry" api:"required"`
 	// Elevation profile summary statistics
 	Properties ElevationProfileResultProperties `json:"properties" api:"required"`
 	Type       ElevationProfileResultType       `json:"type" api:"required"`
@@ -275,52 +254,16 @@ func (r ElevationProfileResultType) IsKnown() bool {
 	return false
 }
 
-type ElevationBatchParams struct {
-	// Coordinates to look up elevations for (max 50)
-	Coordinates param.Field[[]ElevationBatchParamsCoordinate] `json:"coordinates" api:"required"`
-	// Response format: json (default), geojson, csv, ndjson
-	Format param.Field[string] `query:"format"`
-}
-
-func (r ElevationBatchParams) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-// URLQuery serializes [ElevationBatchParams]'s query parameters as `url.Values`.
-func (r ElevationBatchParams) URLQuery() (v url.Values) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
-}
-
-// Geographic coordinate as a JSON object with `lat` and `lng` fields.
-type ElevationBatchParamsCoordinate struct {
-	// Latitude in decimal degrees (-90 to 90)
-	Lat param.Field[float64] `json:"lat" api:"required"`
-	// Longitude in decimal degrees (-180 to 180)
-	Lng param.Field[float64] `json:"lng" api:"required"`
-}
-
-func (r ElevationBatchParamsCoordinate) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
 type ElevationLookupParams struct {
+	// Request body for elevation lookup. Accepts a single Point or a MultiPoint
+	// geometry.
+	ElevationLookupRequest ElevationLookupRequestParam `json:"elevation_lookup_request" api:"required"`
 	// Response format: json (default), geojson, csv, ndjson
 	Format param.Field[string] `query:"format"`
-	// Latitude (single point)
-	Lat param.Field[float64] `query:"lat"`
-	// Longitude (single point)
-	Lng param.Field[float64] `query:"lng"`
-	// Pipe-separated lng,lat pairs (batch)
-	Locations param.Field[string] `query:"locations"`
-	// Comma-separated property fields to include
-	OutputFields param.Field[string] `query:"output[fields]"`
-	// Extra computed fields: bbox, center
-	OutputInclude param.Field[string] `query:"output[include]"`
-	// Coordinate decimal precision (1-15, default 7)
-	OutputPrecision param.Field[int64] `query:"output[precision]"`
+}
+
+func (r ElevationLookupParams) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r.ElevationLookupRequest)
 }
 
 // URLQuery serializes [ElevationLookupParams]'s query parameters as `url.Values`.
@@ -331,35 +274,9 @@ func (r ElevationLookupParams) URLQuery() (v url.Values) {
 	})
 }
 
-type ElevationLookupPostParams struct {
-	// Response format: json (default), geojson, csv, ndjson
-	Format param.Field[string] `query:"format"`
-	// Latitude (single point)
-	Lat param.Field[float64] `query:"lat"`
-	// Longitude (single point)
-	Lng param.Field[float64] `query:"lng"`
-	// Pipe-separated lng,lat pairs (batch)
-	Locations param.Field[string] `query:"locations"`
-	// Comma-separated property fields to include
-	OutputFields param.Field[string] `query:"output[fields]"`
-	// Extra computed fields: bbox, center
-	OutputInclude param.Field[string] `query:"output[include]"`
-	// Coordinate decimal precision (1-15, default 7)
-	OutputPrecision param.Field[int64] `query:"output[precision]"`
-}
-
-// URLQuery serializes [ElevationLookupPostParams]'s query parameters as
-// `url.Values`.
-func (r ElevationLookupPostParams) URLQuery() (v url.Values) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
-}
-
 type ElevationProfileParams struct {
-	// Request body for elevation profile along a path. Provide at least 2 coordinates
-	// defining the path. Maximum 50 coordinates per request.
+	// Request body for elevation profile along a path. Provide a GeoJSON LineString
+	// geometry defining the path.
 	ElevationProfileRequest ElevationProfileRequestParam `json:"elevation_profile_request" api:"required"`
 }
 

@@ -36,18 +36,10 @@ func NewRoutingService(opts ...option.RequestOption) (r *RoutingService) {
 }
 
 // Calculate an isochrone from a point
-func (r *RoutingService) Isochrone(ctx context.Context, query RoutingIsochroneParams, opts ...option.RequestOption) (res *RoutingIsochroneResponse, err error) {
+func (r *RoutingService) Isochrone(ctx context.Context, params RoutingIsochroneParams, opts ...option.RequestOption) (res *RoutingIsochroneResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "api/v1/isochrone"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return res, err
-}
-
-// Calculate an isochrone from a point
-func (r *RoutingService) IsochronePost(ctx context.Context, body RoutingIsochronePostParams, opts ...option.RequestOption) (res *RoutingIsochronePostResponse, err error) {
-	opts = slices.Concat(r.Options, opts)
-	path := "api/v1/isochrone"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
 
@@ -60,15 +52,7 @@ func (r *RoutingService) Matrix(ctx context.Context, body RoutingMatrixParams, o
 }
 
 // Snap a coordinate to the nearest road
-func (r *RoutingService) Nearest(ctx context.Context, query RoutingNearestParams, opts ...option.RequestOption) (res *NearestResult, err error) {
-	opts = slices.Concat(r.Options, opts)
-	path := "api/v1/nearest"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return res, err
-}
-
-// Snap a coordinate to the nearest road
-func (r *RoutingService) NearestPost(ctx context.Context, body RoutingNearestPostParams, opts ...option.RequestOption) (res *NearestResult, err error) {
+func (r *RoutingService) Nearest(ctx context.Context, body RoutingNearestParams, opts ...option.RequestOption) (res *NearestResult, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "api/v1/nearest"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
@@ -83,14 +67,47 @@ func (r *RoutingService) Route(ctx context.Context, params RoutingRouteParams, o
 	return res, err
 }
 
+// Request body for isochrone calculation. Computes areas reachable from a point
+// within the given travel time(s).
+type IsochroneRequestParam struct {
+	// GeoJSON Point geometry per RFC 7946. Coordinates use [longitude, latitude]
+	// order. Optional third element is altitude in meters.
+	Geometry param.Field[PointGeometryParam] `json:"geometry" api:"required"`
+	// Travel time budgets in seconds. Each value produces one contour polygon.
+	Time param.Field[[]int64] `json:"time" api:"required"`
+	// Travel mode (default: `auto`)
+	Mode param.Field[IsochroneRequestMode] `json:"mode"`
+}
+
+func (r IsochroneRequestParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+// Travel mode (default: `auto`)
+type IsochroneRequestMode string
+
+const (
+	IsochroneRequestModeAuto    IsochroneRequestMode = "auto"
+	IsochroneRequestModeFoot    IsochroneRequestMode = "foot"
+	IsochroneRequestModeBicycle IsochroneRequestMode = "bicycle"
+)
+
+func (r IsochroneRequestMode) IsKnown() bool {
+	switch r {
+	case IsochroneRequestModeAuto, IsochroneRequestModeFoot, IsochroneRequestModeBicycle:
+		return true
+	}
+	return false
+}
+
 // Request body for distance matrix calculation. Computes travel durations (and
 // optionally distances) between every origin-destination pair. Maximum 2,500 pairs
 // (origins × destinations), each list capped at 50 coordinates.
 type MatrixRequestParam struct {
-	// Array of destination coordinates (max 50)
-	Destinations param.Field[[]MatrixRequestDestinationParam] `json:"destinations" api:"required"`
-	// Array of origin coordinates (max 50)
-	Origins param.Field[[]MatrixRequestOriginParam] `json:"origins" api:"required"`
+	// Array of destination coordinates as GeoJSON Points (max 50)
+	Destinations param.Field[[]PointGeometryParam] `json:"destinations" api:"required"`
+	// Array of origin coordinates as GeoJSON Points (max 50)
+	Origins param.Field[[]PointGeometryParam] `json:"origins" api:"required"`
 	// Comma-separated list of annotations to include: `duration` (always included),
 	// `distance`. Example: `duration,distance`.
 	Annotations param.Field[string] `json:"annotations"`
@@ -102,30 +119,6 @@ type MatrixRequestParam struct {
 }
 
 func (r MatrixRequestParam) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-// Geographic coordinate as a JSON object with `lat` and `lng` fields.
-type MatrixRequestDestinationParam struct {
-	// Latitude in decimal degrees (-90 to 90)
-	Lat param.Field[float64] `json:"lat" api:"required"`
-	// Longitude in decimal degrees (-180 to 180)
-	Lng param.Field[float64] `json:"lng" api:"required"`
-}
-
-func (r MatrixRequestDestinationParam) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-// Geographic coordinate as a JSON object with `lat` and `lng` fields.
-type MatrixRequestOriginParam struct {
-	// Latitude in decimal degrees (-90 to 90)
-	Lat param.Field[float64] `json:"lat" api:"required"`
-	// Longitude in decimal degrees (-180 to 180)
-	Lng param.Field[float64] `json:"lng" api:"required"`
-}
-
-func (r MatrixRequestOriginParam) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
@@ -148,12 +141,25 @@ func (r MatrixRequestMode) IsKnown() bool {
 
 type MatrixResult map[string]interface{}
 
+// Request body for nearest-road-segment lookup. Snaps a point to the road network.
+type NearestRequestParam struct {
+	// GeoJSON Point geometry per RFC 7946. Coordinates use [longitude, latitude]
+	// order. Optional third element is altitude in meters.
+	Geometry param.Field[PointGeometryParam] `json:"geometry" api:"required"`
+	// Maximum search radius in meters (default: 100)
+	Radius param.Field[float64] `json:"radius"`
+}
+
+func (r NearestRequestParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
 // GeoJSON Point Feature representing the nearest point on the road network to the
 // input coordinate. Used for snapping GPS coordinates to roads.
 type NearestResult struct {
-	// GeoJSON Geometry object per RFC 7946. Coordinates use [longitude, latitude]
-	// order. 3D coordinates [lng, lat, elevation] are used for elevation endpoints.
-	Geometry GeoJsonGeometry `json:"geometry" api:"required"`
+	// GeoJSON Geometry object per RFC 7946. Discriminated union — the `type` field
+	// determines the coordinate structure.
+	Geometry Geometry `json:"geometry" api:"required"`
 	// Snap result metadata
 	Properties NearestResultProperties `json:"properties" api:"required"`
 	Type       NearestResultType       `json:"type" api:"required"`
@@ -229,14 +235,16 @@ func (r NearestResultType) IsKnown() bool {
 	return false
 }
 
-// Request body for route calculation. Origin and destination are lat/lng
-// coordinate objects. Supports optional waypoints, alternative routes,
-// turn-by-turn steps, and EV routing parameters.
+// Request body for route calculation. Origin and destination are GeoJSON Point
+// geometries. Supports optional waypoints, alternative routes, turn-by-turn steps,
+// and EV routing parameters.
 type RouteRequestParam struct {
-	// Geographic coordinate as a JSON object with `lat` and `lng` fields.
-	Destination param.Field[RouteRequestDestinationParam] `json:"destination" api:"required"`
-	// Geographic coordinate as a JSON object with `lat` and `lng` fields.
-	Origin param.Field[RouteRequestOriginParam] `json:"origin" api:"required"`
+	// GeoJSON Point geometry per RFC 7946. Coordinates use [longitude, latitude]
+	// order. Optional third element is altitude in meters.
+	Destination param.Field[PointGeometryParam] `json:"destination" api:"required"`
+	// GeoJSON Point geometry per RFC 7946. Coordinates use [longitude, latitude]
+	// order. Optional third element is altitude in meters.
+	Origin param.Field[PointGeometryParam] `json:"origin" api:"required"`
 	// Number of alternative routes to return (0-3, default 0). When > 0, response is a
 	// FeatureCollection of route Features.
 	Alternatives param.Field[int64] `json:"alternatives"`
@@ -260,34 +268,10 @@ type RouteRequestParam struct {
 	// Traffic prediction model (only used when `depart_at` is set)
 	TrafficModel param.Field[RouteRequestTrafficModel] `json:"traffic_model"`
 	// Intermediate waypoints to visit in order (maximum 25)
-	Waypoints param.Field[[]RouteRequestWaypointParam] `json:"waypoints"`
+	Waypoints param.Field[[]PointGeometryParam] `json:"waypoints"`
 }
 
 func (r RouteRequestParam) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-// Geographic coordinate as a JSON object with `lat` and `lng` fields.
-type RouteRequestDestinationParam struct {
-	// Latitude in decimal degrees (-90 to 90)
-	Lat param.Field[float64] `json:"lat" api:"required"`
-	// Longitude in decimal degrees (-180 to 180)
-	Lng param.Field[float64] `json:"lng" api:"required"`
-}
-
-func (r RouteRequestDestinationParam) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-// Geographic coordinate as a JSON object with `lat` and `lng` fields.
-type RouteRequestOriginParam struct {
-	// Latitude in decimal degrees (-90 to 90)
-	Lat param.Field[float64] `json:"lat" api:"required"`
-	// Longitude in decimal degrees (-180 to 180)
-	Lng param.Field[float64] `json:"lng" api:"required"`
-}
-
-func (r RouteRequestOriginParam) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
@@ -378,25 +362,13 @@ func (r RouteRequestTrafficModel) IsKnown() bool {
 	return false
 }
 
-// Geographic coordinate as a JSON object with `lat` and `lng` fields.
-type RouteRequestWaypointParam struct {
-	// Latitude in decimal degrees (-90 to 90)
-	Lat param.Field[float64] `json:"lat" api:"required"`
-	// Longitude in decimal degrees (-180 to 180)
-	Lng param.Field[float64] `json:"lng" api:"required"`
-}
-
-func (r RouteRequestWaypointParam) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
 // GeoJSON Feature representing a calculated route. The geometry is a LineString or
 // MultiLineString of the route path. When `alternatives > 0`, the response is a
 // FeatureCollection containing multiple route Features.
 type RouteResult struct {
-	// GeoJSON Geometry object per RFC 7946. Coordinates use [longitude, latitude]
-	// order. 3D coordinates [lng, lat, elevation] are used for elevation endpoints.
-	Geometry GeoJsonGeometry `json:"geometry" api:"required"`
+	// GeoJSON Geometry object per RFC 7946. Discriminated union — the `type` field
+	// determines the coordinate structure.
+	Geometry Geometry `json:"geometry" api:"required"`
 	// Route metadata
 	Properties RouteResultProperties `json:"properties" api:"required"`
 	Type       RouteResultType       `json:"type" api:"required"`
@@ -476,20 +448,14 @@ func (r RouteResultType) IsKnown() bool {
 	return false
 }
 
-// GeoJSON Feature or FeatureCollection representing isochrone polygons — areas
-// reachable within the specified travel time(s). Single time value returns a
-// Feature; comma-separated times return a FeatureCollection with one polygon per
-// contour.
+// GeoJSON FeatureCollection of isochrone polygons — areas reachable within the
+// specified travel time(s). Each Feature is a Polygon contour with travel time and
+// area metadata in properties.
 type RoutingIsochroneResponse struct {
-	// Array of isochrone polygon Features (multi-contour only)
-	Features []GeoJsonFeature `json:"features" api:"nullable"`
-	// GeoJSON Geometry object per RFC 7946. Coordinates use [longitude, latitude]
-	// order. 3D coordinates [lng, lat, elevation] are used for elevation endpoints.
-	Geometry GeoJsonGeometry `json:"geometry" api:"nullable"`
-	// Isochrone metadata
-	Properties RoutingIsochroneResponseProperties `json:"properties" api:"nullable"`
-	// `Feature` for single contour, `FeatureCollection` for multiple contours
-	Type RoutingIsochroneResponseType `json:"type"`
+	// Array of isochrone polygon Features, one per contour
+	Features []GeoJsonFeature `json:"features" api:"required"`
+	// Always `FeatureCollection`
+	Type RoutingIsochroneResponseType `json:"type" api:"required"`
 	JSON routingIsochroneResponseJSON `json:"-"`
 }
 
@@ -497,8 +463,6 @@ type RoutingIsochroneResponse struct {
 // [RoutingIsochroneResponse]
 type routingIsochroneResponseJSON struct {
 	Features    apijson.Field
-	Geometry    apijson.Field
-	Properties  apijson.Field
 	Type        apijson.Field
 	raw         string
 	ExtraFields map[string]apijson.Field
@@ -512,237 +476,35 @@ func (r routingIsochroneResponseJSON) RawJSON() string {
 	return r.raw
 }
 
-// Isochrone metadata
-type RoutingIsochroneResponseProperties struct {
-	// Area of the isochrone polygon in square meters (multi-contour features only)
-	AreaM2 float64 `json:"area_m2" api:"nullable"`
-	// Maximum actual travel cost in seconds to the isochrone boundary (single contour
-	// only)
-	MaxCostS float64 `json:"max_cost_s" api:"nullable"`
-	// Travel mode used for the isochrone calculation
-	Mode RoutingIsochroneResponsePropertiesMode `json:"mode"`
-	// Travel time budget in seconds
-	TimeSeconds float64 `json:"time_seconds"`
-	// Number of road network vertices within the isochrone
-	VerticesReached int64                                  `json:"vertices_reached"`
-	JSON            routingIsochroneResponsePropertiesJSON `json:"-"`
-}
-
-// routingIsochroneResponsePropertiesJSON contains the JSON metadata for the struct
-// [RoutingIsochroneResponseProperties]
-type routingIsochroneResponsePropertiesJSON struct {
-	AreaM2          apijson.Field
-	MaxCostS        apijson.Field
-	Mode            apijson.Field
-	TimeSeconds     apijson.Field
-	VerticesReached apijson.Field
-	raw             string
-	ExtraFields     map[string]apijson.Field
-}
-
-func (r *RoutingIsochroneResponseProperties) UnmarshalJSON(data []byte) (err error) {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r routingIsochroneResponsePropertiesJSON) RawJSON() string {
-	return r.raw
-}
-
-// Travel mode used for the isochrone calculation
-type RoutingIsochroneResponsePropertiesMode string
-
-const (
-	RoutingIsochroneResponsePropertiesModeAuto    RoutingIsochroneResponsePropertiesMode = "auto"
-	RoutingIsochroneResponsePropertiesModeFoot    RoutingIsochroneResponsePropertiesMode = "foot"
-	RoutingIsochroneResponsePropertiesModeBicycle RoutingIsochroneResponsePropertiesMode = "bicycle"
-)
-
-func (r RoutingIsochroneResponsePropertiesMode) IsKnown() bool {
-	switch r {
-	case RoutingIsochroneResponsePropertiesModeAuto, RoutingIsochroneResponsePropertiesModeFoot, RoutingIsochroneResponsePropertiesModeBicycle:
-		return true
-	}
-	return false
-}
-
-// `Feature` for single contour, `FeatureCollection` for multiple contours
+// Always `FeatureCollection`
 type RoutingIsochroneResponseType string
 
 const (
-	RoutingIsochroneResponseTypeFeature           RoutingIsochroneResponseType = "Feature"
 	RoutingIsochroneResponseTypeFeatureCollection RoutingIsochroneResponseType = "FeatureCollection"
 )
 
 func (r RoutingIsochroneResponseType) IsKnown() bool {
 	switch r {
-	case RoutingIsochroneResponseTypeFeature, RoutingIsochroneResponseTypeFeatureCollection:
-		return true
-	}
-	return false
-}
-
-// GeoJSON Feature or FeatureCollection representing isochrone polygons — areas
-// reachable within the specified travel time(s). Single time value returns a
-// Feature; comma-separated times return a FeatureCollection with one polygon per
-// contour.
-type RoutingIsochronePostResponse struct {
-	// Array of isochrone polygon Features (multi-contour only)
-	Features []GeoJsonFeature `json:"features" api:"nullable"`
-	// GeoJSON Geometry object per RFC 7946. Coordinates use [longitude, latitude]
-	// order. 3D coordinates [lng, lat, elevation] are used for elevation endpoints.
-	Geometry GeoJsonGeometry `json:"geometry" api:"nullable"`
-	// Isochrone metadata
-	Properties RoutingIsochronePostResponseProperties `json:"properties" api:"nullable"`
-	// `Feature` for single contour, `FeatureCollection` for multiple contours
-	Type RoutingIsochronePostResponseType `json:"type"`
-	JSON routingIsochronePostResponseJSON `json:"-"`
-}
-
-// routingIsochronePostResponseJSON contains the JSON metadata for the struct
-// [RoutingIsochronePostResponse]
-type routingIsochronePostResponseJSON struct {
-	Features    apijson.Field
-	Geometry    apijson.Field
-	Properties  apijson.Field
-	Type        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *RoutingIsochronePostResponse) UnmarshalJSON(data []byte) (err error) {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r routingIsochronePostResponseJSON) RawJSON() string {
-	return r.raw
-}
-
-// Isochrone metadata
-type RoutingIsochronePostResponseProperties struct {
-	// Area of the isochrone polygon in square meters (multi-contour features only)
-	AreaM2 float64 `json:"area_m2" api:"nullable"`
-	// Maximum actual travel cost in seconds to the isochrone boundary (single contour
-	// only)
-	MaxCostS float64 `json:"max_cost_s" api:"nullable"`
-	// Travel mode used for the isochrone calculation
-	Mode RoutingIsochronePostResponsePropertiesMode `json:"mode"`
-	// Travel time budget in seconds
-	TimeSeconds float64 `json:"time_seconds"`
-	// Number of road network vertices within the isochrone
-	VerticesReached int64                                      `json:"vertices_reached"`
-	JSON            routingIsochronePostResponsePropertiesJSON `json:"-"`
-}
-
-// routingIsochronePostResponsePropertiesJSON contains the JSON metadata for the
-// struct [RoutingIsochronePostResponseProperties]
-type routingIsochronePostResponsePropertiesJSON struct {
-	AreaM2          apijson.Field
-	MaxCostS        apijson.Field
-	Mode            apijson.Field
-	TimeSeconds     apijson.Field
-	VerticesReached apijson.Field
-	raw             string
-	ExtraFields     map[string]apijson.Field
-}
-
-func (r *RoutingIsochronePostResponseProperties) UnmarshalJSON(data []byte) (err error) {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r routingIsochronePostResponsePropertiesJSON) RawJSON() string {
-	return r.raw
-}
-
-// Travel mode used for the isochrone calculation
-type RoutingIsochronePostResponsePropertiesMode string
-
-const (
-	RoutingIsochronePostResponsePropertiesModeAuto    RoutingIsochronePostResponsePropertiesMode = "auto"
-	RoutingIsochronePostResponsePropertiesModeFoot    RoutingIsochronePostResponsePropertiesMode = "foot"
-	RoutingIsochronePostResponsePropertiesModeBicycle RoutingIsochronePostResponsePropertiesMode = "bicycle"
-)
-
-func (r RoutingIsochronePostResponsePropertiesMode) IsKnown() bool {
-	switch r {
-	case RoutingIsochronePostResponsePropertiesModeAuto, RoutingIsochronePostResponsePropertiesModeFoot, RoutingIsochronePostResponsePropertiesModeBicycle:
-		return true
-	}
-	return false
-}
-
-// `Feature` for single contour, `FeatureCollection` for multiple contours
-type RoutingIsochronePostResponseType string
-
-const (
-	RoutingIsochronePostResponseTypeFeature           RoutingIsochronePostResponseType = "Feature"
-	RoutingIsochronePostResponseTypeFeatureCollection RoutingIsochronePostResponseType = "FeatureCollection"
-)
-
-func (r RoutingIsochronePostResponseType) IsKnown() bool {
-	switch r {
-	case RoutingIsochronePostResponseTypeFeature, RoutingIsochronePostResponseTypeFeatureCollection:
+	case RoutingIsochroneResponseTypeFeatureCollection:
 		return true
 	}
 	return false
 }
 
 type RoutingIsochroneParams struct {
-	// Latitude
-	Lat param.Field[float64] `query:"lat" api:"required"`
-	// Longitude
-	Lng param.Field[float64] `query:"lng" api:"required"`
-	// Travel time in seconds (1-7200)
-	Time param.Field[float64] `query:"time" api:"required"`
+	// Request body for isochrone calculation. Computes areas reachable from a point
+	// within the given travel time(s).
+	IsochroneRequest IsochroneRequestParam `json:"isochrone_request" api:"required"`
 	// Response format: json (default), geojson, csv, ndjson
 	Format param.Field[string] `query:"format"`
-	// Travel mode (auto, foot, bicycle)
-	Mode param.Field[string] `query:"mode"`
-	// Comma-separated property fields to include
-	OutputFields param.Field[string] `query:"output[fields]"`
-	// Include geometry (default true)
-	OutputGeometry param.Field[bool] `query:"output[geometry]"`
-	// Extra computed fields: bbox, center
-	OutputInclude param.Field[string] `query:"output[include]"`
-	// Coordinate decimal precision (1-15, default 7)
-	OutputPrecision param.Field[int64] `query:"output[precision]"`
-	// Simplify geometry tolerance in meters
-	OutputSimplify param.Field[float64] `query:"output[simplify]"`
+}
+
+func (r RoutingIsochroneParams) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r.IsochroneRequest)
 }
 
 // URLQuery serializes [RoutingIsochroneParams]'s query parameters as `url.Values`.
 func (r RoutingIsochroneParams) URLQuery() (v url.Values) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
-}
-
-type RoutingIsochronePostParams struct {
-	// Latitude
-	Lat param.Field[float64] `query:"lat" api:"required"`
-	// Longitude
-	Lng param.Field[float64] `query:"lng" api:"required"`
-	// Travel time in seconds (1-7200)
-	Time param.Field[float64] `query:"time" api:"required"`
-	// Response format: json (default), geojson, csv, ndjson
-	Format param.Field[string] `query:"format"`
-	// Travel mode (auto, foot, bicycle)
-	Mode param.Field[string] `query:"mode"`
-	// Comma-separated property fields to include
-	OutputFields param.Field[string] `query:"output[fields]"`
-	// Include geometry (default true)
-	OutputGeometry param.Field[bool] `query:"output[geometry]"`
-	// Extra computed fields: bbox, center
-	OutputInclude param.Field[string] `query:"output[include]"`
-	// Coordinate decimal precision (1-15, default 7)
-	OutputPrecision param.Field[int64] `query:"output[precision]"`
-	// Simplify geometry tolerance in meters
-	OutputSimplify param.Field[float64] `query:"output[simplify]"`
-}
-
-// URLQuery serializes [RoutingIsochronePostParams]'s query parameters as
-// `url.Values`.
-func (r RoutingIsochronePostParams) URLQuery() (v url.Values) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
@@ -761,56 +523,18 @@ func (r RoutingMatrixParams) MarshalJSON() (data []byte, err error) {
 }
 
 type RoutingNearestParams struct {
-	// Latitude
-	Lat param.Field[float64] `query:"lat" api:"required"`
-	// Longitude
-	Lng param.Field[float64] `query:"lng" api:"required"`
-	// Comma-separated property fields to include
-	OutputFields param.Field[string] `query:"output[fields]"`
-	// Extra computed fields: bbox, distance, center
-	OutputInclude param.Field[string] `query:"output[include]"`
-	// Coordinate decimal precision (1-15, default 7)
-	OutputPrecision param.Field[int64] `query:"output[precision]"`
-	// Search radius in meters (default 500, max 5000)
-	Radius param.Field[int64] `query:"radius"`
+	// Request body for nearest-road-segment lookup. Snaps a point to the road network.
+	NearestRequest NearestRequestParam `json:"nearest_request" api:"required"`
 }
 
-// URLQuery serializes [RoutingNearestParams]'s query parameters as `url.Values`.
-func (r RoutingNearestParams) URLQuery() (v url.Values) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
-}
-
-type RoutingNearestPostParams struct {
-	// Latitude
-	Lat param.Field[float64] `query:"lat" api:"required"`
-	// Longitude
-	Lng param.Field[float64] `query:"lng" api:"required"`
-	// Comma-separated property fields to include
-	OutputFields param.Field[string] `query:"output[fields]"`
-	// Extra computed fields: bbox, distance, center
-	OutputInclude param.Field[string] `query:"output[include]"`
-	// Coordinate decimal precision (1-15, default 7)
-	OutputPrecision param.Field[int64] `query:"output[precision]"`
-	// Search radius in meters (default 500, max 5000)
-	Radius param.Field[int64] `query:"radius"`
-}
-
-// URLQuery serializes [RoutingNearestPostParams]'s query parameters as
-// `url.Values`.
-func (r RoutingNearestPostParams) URLQuery() (v url.Values) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
+func (r RoutingNearestParams) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r.NearestRequest)
 }
 
 type RoutingRouteParams struct {
-	// Request body for route calculation. Origin and destination are lat/lng
-	// coordinate objects. Supports optional waypoints, alternative routes,
-	// turn-by-turn steps, and EV routing parameters.
+	// Request body for route calculation. Origin and destination are GeoJSON Point
+	// geometries. Supports optional waypoints, alternative routes, turn-by-turn steps,
+	// and EV routing parameters.
 	RouteRequest RouteRequestParam `json:"route_request" api:"required"`
 	// Response format for alternatives: json (default), geojson, csv, ndjson
 	Format param.Field[string] `query:"format"`
