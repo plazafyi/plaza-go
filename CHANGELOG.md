@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.3.0 (2026-05-08)
+
+Full Changelog: [v0.2.0...v0.3.0](https://github.com/plazafyi/plaza-go/compare/v0.2.0...v0.3.0)
+
+### Features
+
+* **api:** api update ([94a1d94](https://github.com/plazafyi/plaza-go/commit/94a1d94a22a42846900b4d9ca06b6e2fac01e694))
+* **api:** api update ([da463ba](https://github.com/plazafyi/plaza-go/commit/da463ba2e935210da0f39c8222df9dcd18d8ffe6))
+* **api:** api update ([6f9edd9](https://github.com/plazafyi/plaza-go/commit/6f9edd918a4ef5a7ca628730cb2d6f30ac7fc7d6))
+* **api:** api update ([3b6e112](https://github.com/plazafyi/plaza-go/commit/3b6e112fc634023a56937cc8bfd6fc15dbd9a37c))
+* **go:** add default http client with timeout ([42b0157](https://github.com/plazafyi/plaza-go/commit/42b0157349d327882b6c05b7ce7d23f7a07261b4))
+* **internal:** support comma format in multipart form encoding ([a87a161](https://github.com/plazafyi/plaza-go/commit/a87a1617b6195407b4fd2a35f7b3474580cb42a4))
+* support setting headers via env ([04451ca](https://github.com/plazafyi/plaza-go/commit/04451ca7efc50f7c627c544e93493f1741b681d8))
+
+
+### Bug Fixes
+
+* **go:** avoid panic when http.DefaultTransport is wrapped ([dbb5fb0](https://github.com/plazafyi/plaza-go/commit/dbb5fb0c56e10c6663d284978853352d8b6532ec))
+* prevent duplicate ? in query params ([807a4f0](https://github.com/plazafyi/plaza-go/commit/807a4f02324cd482bf89f2bd7738739f724f877d))
+
+
+### Chores
+
+* avoid embedding reflect.Type for dead code elimination ([b8e45ef](https://github.com/plazafyi/plaza-go/commit/b8e45ef9138a076cf9ae972d3f1eda1751aedcfe))
+* **ci:** skip lint on metadata-only changes ([68066fe](https://github.com/plazafyi/plaza-go/commit/68066fee5f9e9b017cbdcb6587fcf95eb032b638))
+* **ci:** support opting out of skipping builds on metadata-only commits ([4f60d4a](https://github.com/plazafyi/plaza-go/commit/4f60d4a3a0376157fca6a462d30ab1396f2c0d86))
+* **internal:** more robust bootstrap script ([0987c3f](https://github.com/plazafyi/plaza-go/commit/0987c3fb7dbd14a3f2f182e8d77b427ca07370ea))
+* **internal:** update gitignore ([f1e52fd](https://github.com/plazafyi/plaza-go/commit/f1e52fd2468db16010d7df1abafafa30c7b27d44))
+* redact api-key headers in debug logs ([874f9a3](https://github.com/plazafyi/plaza-go/commit/874f9a3bfad615f505547a3b48a4b037e4bd5725))
+* remove unnecessary error check for url parsing ([79c47aa](https://github.com/plazafyi/plaza-go/commit/79c47aa7ef1f3395f96ba81e4ab77750564936d9))
+* **tests:** bump steady to v0.19.4 ([3742de2](https://github.com/plazafyi/plaza-go/commit/3742de291cf3ab17ff62797587344e190c9fe3d0))
+* **tests:** bump steady to v0.19.5 ([68c1af4](https://github.com/plazafyi/plaza-go/commit/68c1af45a18ee1252d6c0aa5daf20498480d5629))
+* **tests:** bump steady to v0.19.6 ([24d8df5](https://github.com/plazafyi/plaza-go/commit/24d8df56708e579cfe1dca74cc0c0a7caf6708d4))
+* **tests:** bump steady to v0.19.7 ([e96840d](https://github.com/plazafyi/plaza-go/commit/e96840d270861bde7e7560e64075429cb72c6e10))
+* **tests:** bump steady to v0.20.1 ([458bb87](https://github.com/plazafyi/plaza-go/commit/458bb87db0acd91355e9aac01169860d1dcec56b))
+* **tests:** bump steady to v0.20.2 ([5047b3d](https://github.com/plazafyi/plaza-go/commit/5047b3daf7c30dab9d9026f3d1085d7ca5adbc46))
+* **tests:** bump steady to v0.22.1 ([fde1026](https://github.com/plazafyi/plaza-go/commit/fde1026274b7497d8ff0f5e7054eb71a12844d55))
+
 ## 0.2.0 (2026-03-20)
 
 Full Changelog: [v0.1.1...v0.2.0](https://github.com/plazafyi/plaza-go/compare/v0.1.1...v0.2.0)
