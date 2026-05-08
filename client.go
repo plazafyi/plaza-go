@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"slices"
+	"strings"
 
 	"github.com/plazafyi/plaza-go/internal/requestconfig"
 	"github.com/plazafyi/plaza-go/option"
@@ -17,7 +18,7 @@ import (
 // and instead use the [NewClient] method instead.
 type Client struct {
 	Options   []option.RequestOption
-	Elements  *ElementService
+	Features  *FeatureService
 	Datasets  *DatasetService
 	Geocode   *GeocodeService
 	Search    *SearchService
@@ -32,12 +33,20 @@ type Client struct {
 // DefaultClientOptions read from the environment (PLAZA_API_KEY, PLAZA_BASE_URL).
 // This should be used to initialize new clients.
 func DefaultClientOptions() []option.RequestOption {
-	defaults := []option.RequestOption{option.WithEnvironmentProduction()}
+	defaults := []option.RequestOption{option.WithHTTPClient(defaultHTTPClient()), option.WithEnvironmentProduction()}
 	if o, ok := os.LookupEnv("PLAZA_BASE_URL"); ok {
 		defaults = append(defaults, option.WithBaseURL(o))
 	}
 	if o, ok := os.LookupEnv("PLAZA_API_KEY"); ok {
 		defaults = append(defaults, option.WithAPIKey(o))
+	}
+	if o, ok := os.LookupEnv("PLAZA_CUSTOM_HEADERS"); ok {
+		for _, line := range strings.Split(o, "\n") {
+			colon := strings.Index(line, ":")
+			if colon >= 0 {
+				defaults = append(defaults, option.WithHeader(strings.TrimSpace(line[:colon]), strings.TrimSpace(line[colon+1:])))
+			}
+		}
 	}
 	return defaults
 }
@@ -51,7 +60,7 @@ func NewClient(opts ...option.RequestOption) (r *Client) {
 
 	r = &Client{Options: opts}
 
-	r.Elements = NewElementService(opts...)
+	r.Features = NewFeatureService(opts...)
 	r.Datasets = NewDatasetService(opts...)
 	r.Geocode = NewGeocodeService(opts...)
 	r.Search = NewSearchService(opts...)

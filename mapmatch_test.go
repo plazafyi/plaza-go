@@ -27,16 +27,10 @@ func TestMapMatchMatchWithOptionalParams(t *testing.T) {
 	)
 	_, err := client.MapMatch.Match(context.TODO(), githubcomplazafyiplazago.MapMatchMatchParams{
 		MapMatchRequest: githubcomplazafyiplazago.MapMatchRequestParam{
-			Coordinates: githubcomplazafyiplazago.F([]githubcomplazafyiplazago.MapMatchRequestCoordinateParam{{
-				Lat: githubcomplazafyiplazago.F(48.856600),
-				Lng: githubcomplazafyiplazago.F(2.352200),
-			}, {
-				Lat: githubcomplazafyiplazago.F(48.857000),
-				Lng: githubcomplazafyiplazago.F(2.353000),
-			}, {
-				Lat: githubcomplazafyiplazago.F(48.857500),
-				Lng: githubcomplazafyiplazago.F(2.354000),
-			}}),
+			Geometry: githubcomplazafyiplazago.F(githubcomplazafyiplazago.LineStringGeometryParam{
+				Coordinates: githubcomplazafyiplazago.F([][]float64{{2.352200, 48.856600}, {2.353000, 48.857000}, {2.354000, 48.857500}}),
+				Type:        githubcomplazafyiplazago.F(githubcomplazafyiplazago.LineStringGeometryTypeLineString),
+			}),
 			Radiuses: githubcomplazafyiplazago.F([]float64{0.000000}),
 		},
 	})

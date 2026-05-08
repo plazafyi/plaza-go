@@ -37,7 +37,7 @@ func NewDatasetService(opts ...option.RequestOption) (r *DatasetService) {
 	return
 }
 
-// Create a new dataset (admin only)
+// Create a new dataset
 func (r *DatasetService) New(ctx context.Context, body DatasetNewParams, opts ...option.RequestOption) (res *Dataset, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "api/v1/datasets"
@@ -57,11 +57,11 @@ func (r *DatasetService) Get(ctx context.Context, id string, opts ...option.Requ
 	return res, err
 }
 
-// List all datasets
-func (r *DatasetService) List(ctx context.Context, opts ...option.RequestOption) (res *DatasetList, err error) {
+// List datasets
+func (r *DatasetService) List(ctx context.Context, query DatasetListParams, opts ...option.RequestOption) (res *DatasetList, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "api/v1/datasets"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
 
@@ -78,18 +78,6 @@ func (r *DatasetService) Delete(ctx context.Context, id string, opts ...option.R
 	return err
 }
 
-// Query features in a dataset
-func (r *DatasetService) Features(ctx context.Context, id string, query DatasetFeaturesParams, opts ...option.RequestOption) (res *FeatureCollection, err error) {
-	opts = slices.Concat(r.Options, opts)
-	if id == "" {
-		err = errors.New("missing required id parameter")
-		return nil, err
-	}
-	path := fmt.Sprintf("api/v1/datasets/%s/features", id)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return res, err
-}
-
 // Metadata for a custom dataset. Datasets contain user-uploaded geospatial
 // features separate from the OSM data.
 type Dataset struct {
@@ -99,34 +87,64 @@ type Dataset struct {
 	InsertedAt time.Time `json:"inserted_at" api:"required" format:"date-time"`
 	// Human-readable dataset name
 	Name string `json:"name" api:"required"`
+	// Dataset scope: plaza (managed by Plaza) or user (user-owned)
+	Scope DatasetScope `json:"scope" api:"required"`
 	// URL-friendly identifier
 	Slug string `json:"slug" api:"required"`
+	// Current processing status
+	Status DatasetStatus `json:"status" api:"required"`
 	// Last update timestamp (UTC)
 	UpdatedAt time.Time `json:"updated_at" api:"required" format:"date-time"`
+	// Number of addresses in this dataset
+	AddressCount int64 `json:"address_count"`
 	// Required attribution text
 	Attribution string `json:"attribution" api:"nullable"`
 	// Dataset description
 	Description string `json:"description" api:"nullable"`
+	// Number of routing edges in this dataset
+	EdgeCount int64 `json:"edge_count"`
+	// Error message if status is 'error'
+	ErrorMessage string `json:"error_message" api:"nullable"`
+	// Number of features in this dataset
+	FeatureCount int64 `json:"feature_count"`
 	// License identifier (e.g. CC-BY-4.0)
 	License string `json:"license" api:"nullable"`
+	// Detected or user-defined property schema
+	SchemaDefinition interface{} `json:"schema_definition" api:"nullable"`
+	// Data format (geojson)
+	SourceFormat string `json:"source_format" api:"nullable"`
 	// URL of the original data source
-	SourceURL string      `json:"source_url" api:"nullable" format:"uri"`
-	JSON      datasetJSON `json:"-"`
+	SourceURL string `json:"source_url" api:"nullable" format:"uri"`
+	// Total storage consumed in bytes
+	StorageBytes int64 `json:"storage_bytes"`
+	// Whether strict schema validation is enabled
+	StrictMode bool        `json:"strict_mode"`
+	JSON       datasetJSON `json:"-"`
 }
 
 // datasetJSON contains the JSON metadata for the struct [Dataset]
 type datasetJSON struct {
-	ID          apijson.Field
-	InsertedAt  apijson.Field
-	Name        apijson.Field
-	Slug        apijson.Field
-	UpdatedAt   apijson.Field
-	Attribution apijson.Field
-	Description apijson.Field
-	License     apijson.Field
-	SourceURL   apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+	ID               apijson.Field
+	InsertedAt       apijson.Field
+	Name             apijson.Field
+	Scope            apijson.Field
+	Slug             apijson.Field
+	Status           apijson.Field
+	UpdatedAt        apijson.Field
+	AddressCount     apijson.Field
+	Attribution      apijson.Field
+	Description      apijson.Field
+	EdgeCount        apijson.Field
+	ErrorMessage     apijson.Field
+	FeatureCount     apijson.Field
+	License          apijson.Field
+	SchemaDefinition apijson.Field
+	SourceFormat     apijson.Field
+	SourceURL        apijson.Field
+	StorageBytes     apijson.Field
+	StrictMode       apijson.Field
+	raw              string
+	ExtraFields      map[string]apijson.Field
 }
 
 func (r *Dataset) UnmarshalJSON(data []byte) (err error) {
@@ -137,7 +155,41 @@ func (r datasetJSON) RawJSON() string {
 	return r.raw
 }
 
-// List of all available datasets.
+// Dataset scope: plaza (managed by Plaza) or user (user-owned)
+type DatasetScope string
+
+const (
+	DatasetScopePlaza DatasetScope = "plaza"
+	DatasetScopeUser  DatasetScope = "user"
+)
+
+func (r DatasetScope) IsKnown() bool {
+	switch r {
+	case DatasetScopePlaza, DatasetScopeUser:
+		return true
+	}
+	return false
+}
+
+// Current processing status
+type DatasetStatus string
+
+const (
+	DatasetStatusPending    DatasetStatus = "pending"
+	DatasetStatusProcessing DatasetStatus = "processing"
+	DatasetStatusReady      DatasetStatus = "ready"
+	DatasetStatusError      DatasetStatus = "error"
+)
+
+func (r DatasetStatus) IsKnown() bool {
+	switch r {
+	case DatasetStatusPending, DatasetStatusProcessing, DatasetStatusReady, DatasetStatusError:
+		return true
+	}
+	return false
+}
+
+// List of datasets visible to the authenticated user.
 type DatasetList struct {
 	// Array of dataset metadata objects
 	Datasets []Dataset       `json:"datasets" api:"required"`
@@ -172,37 +224,21 @@ type DatasetNewParams struct {
 	License param.Field[string] `json:"license"`
 	// Source data URL
 	SourceURL param.Field[string] `json:"source_url" format:"uri"`
+	// Enable strict schema validation (default true)
+	StrictMode param.Field[bool] `json:"strict_mode"`
 }
 
 func (r DatasetNewParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
-type DatasetFeaturesParams struct {
-	// Cursor for pagination
-	Cursor param.Field[string] `query:"cursor"`
-	// Maximum results
-	Limit param.Field[int64] `query:"limit"`
-	// Buffer geometry by meters
-	OutputBuffer param.Field[float64] `query:"output[buffer]"`
-	// Replace geometry with centroid
-	OutputCentroid param.Field[bool] `query:"output[centroid]"`
-	// Comma-separated property fields to include
-	OutputFields param.Field[string] `query:"output[fields]"`
-	// Include geometry (default true)
-	OutputGeometry param.Field[bool] `query:"output[geometry]"`
-	// Extra computed fields: bbox, distance, center
-	OutputInclude param.Field[string] `query:"output[include]"`
-	// Coordinate decimal precision (1-15, default 7)
-	OutputPrecision param.Field[int64] `query:"output[precision]"`
-	// Simplify geometry tolerance in meters
-	OutputSimplify param.Field[float64] `query:"output[simplify]"`
-	// Sort by: distance, name, osm_id
-	OutputSort param.Field[string] `query:"output[sort]"`
+type DatasetListParams struct {
+	// Filter by scope: plaza, user. Default shows user's own + plaza datasets.
+	Scope param.Field[string] `query:"scope"`
 }
 
-// URLQuery serializes [DatasetFeaturesParams]'s query parameters as `url.Values`.
-func (r DatasetFeaturesParams) URLQuery() (v url.Values) {
+// URLQuery serializes [DatasetListParams]'s query parameters as `url.Values`.
+func (r DatasetListParams) URLQuery() (v url.Values) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,

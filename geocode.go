@@ -35,18 +35,10 @@ func NewGeocodeService(opts ...option.RequestOption) (r *GeocodeService) {
 }
 
 // Autocomplete a partial address
-func (r *GeocodeService) Autocomplete(ctx context.Context, query GeocodeAutocompleteParams, opts ...option.RequestOption) (res *AutocompleteResult, err error) {
+func (r *GeocodeService) Autocomplete(ctx context.Context, params GeocodeAutocompleteParams, opts ...option.RequestOption) (res *AutocompleteResult, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "api/v1/geocode/autocomplete"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return res, err
-}
-
-// Autocomplete a partial address
-func (r *GeocodeService) AutocompletePost(ctx context.Context, body GeocodeAutocompletePostParams, opts ...option.RequestOption) (res *AutocompleteResult, err error) {
-	opts = slices.Concat(r.Options, opts)
-	path := "api/v1/geocode/autocomplete"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
 
@@ -59,35 +51,41 @@ func (r *GeocodeService) Batch(ctx context.Context, body GeocodeBatchParams, opt
 }
 
 // Forward geocode an address
-func (r *GeocodeService) Forward(ctx context.Context, query GeocodeForwardParams, opts ...option.RequestOption) (res *GeocodeResult, err error) {
+func (r *GeocodeService) Forward(ctx context.Context, params GeocodeForwardParams, opts ...option.RequestOption) (res *GeocodeResult, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "api/v1/geocode"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return res, err
-}
-
-// Forward geocode an address
-func (r *GeocodeService) ForwardPost(ctx context.Context, body GeocodeForwardPostParams, opts ...option.RequestOption) (res *GeocodeResult, err error) {
-	opts = slices.Concat(r.Options, opts)
-	path := "api/v1/geocode"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
 
 // Reverse geocode a coordinate
-func (r *GeocodeService) Reverse(ctx context.Context, query GeocodeReverseParams, opts ...option.RequestOption) (res *ReverseGeocodeResult, err error) {
+func (r *GeocodeService) Reverse(ctx context.Context, params GeocodeReverseParams, opts ...option.RequestOption) (res *ReverseGeocodeResult, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "api/v1/geocode/reverse"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
 
-// Reverse geocode a coordinate
-func (r *GeocodeService) ReversePost(ctx context.Context, body GeocodeReversePostParams, opts ...option.RequestOption) (res *ReverseGeocodeResult, err error) {
-	opts = slices.Concat(r.Options, opts)
-	path := "api/v1/geocode/reverse"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return res, err
+// Request body for autocomplete suggestions. Optimized for low-latency type-ahead
+// UIs.
+type AutocompleteRequestParam struct {
+	// Partial address or place name input
+	Q param.Field[string] `json:"q" api:"required"`
+	// ISO 3166-1 alpha-2 country code to restrict results
+	CountryCode param.Field[string] `json:"country_code"`
+	// GeoJSON Point geometry per RFC 7946. Coordinates use [longitude, latitude]
+	// order. Optional third element is altitude in meters.
+	Focus param.Field[PointGeometryParam] `json:"focus"`
+	// Preferred response language (ISO 639-1)
+	Lang param.Field[string] `json:"lang"`
+	// Filter by result layer (e.g. `address`, `place`, `poi`)
+	Layer param.Field[string] `json:"layer"`
+	// Maximum number of suggestions (default: 5, max: 20)
+	Limit param.Field[int64] `json:"limit"`
+}
+
+func (r AutocompleteRequestParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
 }
 
 // GeoJSON FeatureCollection of autocomplete suggestions for partial address input.
@@ -130,6 +128,28 @@ func (r AutocompleteResultType) IsKnown() bool {
 	return false
 }
 
+// Request body for forward geocoding. Converts an address or place name to
+// coordinates.
+type GeocodeForwardRequestParam struct {
+	// Address or place name to geocode
+	Q param.Field[string] `json:"q" api:"required"`
+	// ISO 3166-1 alpha-2 country code to restrict results
+	CountryCode param.Field[string] `json:"country_code"`
+	// GeoJSON Point geometry per RFC 7946. Coordinates use [longitude, latitude]
+	// order. Optional third element is altitude in meters.
+	Focus param.Field[PointGeometryParam] `json:"focus"`
+	// Preferred response language (ISO 639-1)
+	Lang param.Field[string] `json:"lang"`
+	// Filter by result layer (e.g. `address`, `place`, `poi`)
+	Layer param.Field[string] `json:"layer"`
+	// Maximum number of results (default: 5, max: 50)
+	Limit param.Field[int64] `json:"limit"`
+}
+
+func (r GeocodeForwardRequestParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
 // GeoJSON FeatureCollection of forward geocoding results, ordered by relevance.
 // Content-Type: `application/geo+json`.
 type GeocodeResult struct {
@@ -169,13 +189,31 @@ func (r GeocodeResultType) IsKnown() bool {
 	return false
 }
 
+// Request body for reverse geocoding. Converts coordinates to addresses or place
+// names.
+type GeocodeReverseRequestParam struct {
+	// GeoJSON Point geometry per RFC 7946. Coordinates use [longitude, latitude]
+	// order. Optional third element is altitude in meters.
+	Geometry param.Field[PointGeometryParam] `json:"geometry" api:"required"`
+	// Preferred response language (ISO 639-1)
+	Lang param.Field[string] `json:"lang"`
+	// Maximum number of results (default: 1, max: 50)
+	Limit param.Field[int64] `json:"limit"`
+	// Search radius in meters (default: 100)
+	Radius param.Field[float64] `json:"radius"`
+}
+
+func (r GeocodeReverseRequestParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
 // GeoJSON Feature representing a geocoding result. The geometry is always a Point.
 // Properties include the formatted display name, OSM metadata, confidence score,
 // and source type.
 type GeocodingFeature struct {
-	// GeoJSON Geometry object per RFC 7946. Coordinates use [longitude, latitude]
-	// order. 3D coordinates [lng, lat, elevation] are used for elevation endpoints.
-	Geometry GeoJsonGeometry `json:"geometry" api:"required"`
+	// GeoJSON Geometry object per RFC 7946. Discriminated union — the `type` field
+	// determines the coordinate structure.
+	Geometry Geometry `json:"geometry" api:"required"`
 	// Geocoding result properties
 	Properties GeocodingFeatureProperties `json:"properties" api:"required"`
 	Type       GeocodingFeatureType       `json:"type" api:"required"`
@@ -236,9 +274,8 @@ type GeocodingFeatureProperties struct {
 	// proximity boost, and popularity signals. Not bounded to 0-1.
 	Score float64 `json:"score" api:"nullable"`
 	// Result source indicating how the result was found: structured (exact field
-	// match), bm25 (full-text search), fuzzy (trigram similarity), address (reverse
-	// geocode address), place (reverse geocode POI), interpolation (estimated from
-	// neighboring addresses)
+	// match), fuzzy (trigram similarity), address (reverse geocode address), place
+	// (reverse geocode POI), interpolation (estimated from neighboring addresses)
 	Source GeocodingFeaturePropertiesSource `json:"source" api:"nullable"`
 	// State or province name. Present for reverse geocode address results.
 	State string `json:"state" api:"nullable"`
@@ -307,14 +344,12 @@ func (r GeocodingFeaturePropertiesOsmType) IsKnown() bool {
 }
 
 // Result source indicating how the result was found: structured (exact field
-// match), bm25 (full-text search), fuzzy (trigram similarity), address (reverse
-// geocode address), place (reverse geocode POI), interpolation (estimated from
-// neighboring addresses)
+// match), fuzzy (trigram similarity), address (reverse geocode address), place
+// (reverse geocode POI), interpolation (estimated from neighboring addresses)
 type GeocodingFeaturePropertiesSource string
 
 const (
 	GeocodingFeaturePropertiesSourceStructured    GeocodingFeaturePropertiesSource = "structured"
-	GeocodingFeaturePropertiesSourceBm25          GeocodingFeaturePropertiesSource = "bm25"
 	GeocodingFeaturePropertiesSourceFuzzy         GeocodingFeaturePropertiesSource = "fuzzy"
 	GeocodingFeaturePropertiesSourceAddress       GeocodingFeaturePropertiesSource = "address"
 	GeocodingFeaturePropertiesSourcePlace         GeocodingFeaturePropertiesSource = "place"
@@ -323,7 +358,7 @@ const (
 
 func (r GeocodingFeaturePropertiesSource) IsKnown() bool {
 	switch r {
-	case GeocodingFeaturePropertiesSourceStructured, GeocodingFeaturePropertiesSourceBm25, GeocodingFeaturePropertiesSourceFuzzy, GeocodingFeaturePropertiesSourceAddress, GeocodingFeaturePropertiesSourcePlace, GeocodingFeaturePropertiesSourceInterpolation:
+	case GeocodingFeaturePropertiesSourceStructured, GeocodingFeaturePropertiesSourceFuzzy, GeocodingFeaturePropertiesSourceAddress, GeocodingFeaturePropertiesSourcePlace, GeocodingFeaturePropertiesSourceInterpolation:
 		return true
 	}
 	return false
@@ -412,51 +447,20 @@ func (r geocodeBatchResponseJSON) RawJSON() string {
 }
 
 type GeocodeAutocompleteParams struct {
-	// Partial address query
-	Q param.Field[string] `query:"q" api:"required"`
-	// ISO 3166-1 alpha-2 country code filter
-	CountryCode param.Field[string] `query:"country_code"`
-	// Language code for localized names (e.g. en, de, fr)
-	Lang param.Field[string] `query:"lang"`
-	// Focus latitude
-	Lat param.Field[float64] `query:"lat"`
-	// Filter by layer: address, poi, or admin
-	Layer param.Field[string] `query:"layer"`
-	// Maximum results (default 10, max 20)
-	Limit param.Field[int64] `query:"limit"`
-	// Focus longitude
-	Lng param.Field[float64] `query:"lng"`
+	// Request body for autocomplete suggestions. Optimized for low-latency type-ahead
+	// UIs.
+	AutocompleteRequest AutocompleteRequestParam `json:"autocomplete_request" api:"required"`
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
+}
+
+func (r GeocodeAutocompleteParams) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r.AutocompleteRequest)
 }
 
 // URLQuery serializes [GeocodeAutocompleteParams]'s query parameters as
 // `url.Values`.
 func (r GeocodeAutocompleteParams) URLQuery() (v url.Values) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
-}
-
-type GeocodeAutocompletePostParams struct {
-	// Partial address query
-	Q param.Field[string] `query:"q" api:"required"`
-	// ISO 3166-1 alpha-2 country code filter
-	CountryCode param.Field[string] `query:"country_code"`
-	// Language code for localized names (e.g. en, de, fr)
-	Lang param.Field[string] `query:"lang"`
-	// Focus latitude
-	Lat param.Field[float64] `query:"lat"`
-	// Filter by layer: address, poi, or admin
-	Layer param.Field[string] `query:"layer"`
-	// Maximum results (default 10, max 20)
-	Limit param.Field[int64] `query:"limit"`
-	// Focus longitude
-	Lng param.Field[float64] `query:"lng"`
-}
-
-// URLQuery serializes [GeocodeAutocompletePostParams]'s query parameters as
-// `url.Values`.
-func (r GeocodeAutocompletePostParams) URLQuery() (v url.Values) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
@@ -472,22 +476,15 @@ func (r GeocodeBatchParams) MarshalJSON() (data []byte, err error) {
 }
 
 type GeocodeForwardParams struct {
-	// Address or place name
-	Q param.Field[string] `query:"q" api:"required"`
-	// Bounding box filter: south,west,north,east
-	Bbox param.Field[string] `query:"bbox"`
-	// ISO 3166-1 alpha-2 country code filter
-	CountryCode param.Field[string] `query:"country_code"`
-	// Language code for localized names (e.g. en, de, fr)
-	Lang param.Field[string] `query:"lang"`
-	// Focus latitude
-	Lat param.Field[float64] `query:"lat"`
-	// Filter by layer: address, poi, or admin
-	Layer param.Field[string] `query:"layer"`
-	// Maximum results (default 20, max 100)
-	Limit param.Field[int64] `query:"limit"`
-	// Focus longitude
-	Lng param.Field[float64] `query:"lng"`
+	// Request body for forward geocoding. Converts an address or place name to
+	// coordinates.
+	GeocodeForwardRequest GeocodeForwardRequestParam `json:"geocode_forward_request" api:"required"`
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
+}
+
+func (r GeocodeForwardParams) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r.GeocodeForwardRequest)
 }
 
 // URLQuery serializes [GeocodeForwardParams]'s query parameters as `url.Values`.
@@ -498,81 +495,20 @@ func (r GeocodeForwardParams) URLQuery() (v url.Values) {
 	})
 }
 
-type GeocodeForwardPostParams struct {
-	// Address or place name
-	Q param.Field[string] `query:"q" api:"required"`
-	// Bounding box filter: south,west,north,east
-	Bbox param.Field[string] `query:"bbox"`
-	// ISO 3166-1 alpha-2 country code filter
-	CountryCode param.Field[string] `query:"country_code"`
-	// Language code for localized names (e.g. en, de, fr)
-	Lang param.Field[string] `query:"lang"`
-	// Focus latitude
-	Lat param.Field[float64] `query:"lat"`
-	// Filter by layer: address, poi, or admin
-	Layer param.Field[string] `query:"layer"`
-	// Maximum results (default 20, max 100)
-	Limit param.Field[int64] `query:"limit"`
-	// Focus longitude
-	Lng param.Field[float64] `query:"lng"`
-}
-
-// URLQuery serializes [GeocodeForwardPostParams]'s query parameters as
-// `url.Values`.
-func (r GeocodeForwardPostParams) URLQuery() (v url.Values) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
-}
-
 type GeocodeReverseParams struct {
-	// Language code for localized names (e.g. en, de, fr)
-	Lang param.Field[string] `query:"lang"`
-	// Legacy shorthand. Latitude. Use near param instead.
-	Lat param.Field[float64] `query:"lat"`
-	// Filter by layer: house or poi
-	Layer param.Field[string] `query:"layer"`
-	// Maximum results (default 1, max 20)
-	Limit param.Field[int64] `query:"limit"`
-	// Legacy shorthand. Longitude. Use near param instead.
-	Lng param.Field[float64] `query:"lng"`
-	// Point geometry for reverse geocode (lat,lng or GeoJSON). Alternative to lat/lng
-	// params.
-	Near param.Field[string] `query:"near"`
-	// Search radius in meters (default 200, max 5000)
-	Radius param.Field[int64] `query:"radius"`
+	// Request body for reverse geocoding. Converts coordinates to addresses or place
+	// names.
+	GeocodeReverseRequest GeocodeReverseRequestParam `json:"geocode_reverse_request" api:"required"`
+	// Response format: json (default), geojson, csv, ndjson
+	Format param.Field[string] `query:"format"`
+}
+
+func (r GeocodeReverseParams) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r.GeocodeReverseRequest)
 }
 
 // URLQuery serializes [GeocodeReverseParams]'s query parameters as `url.Values`.
 func (r GeocodeReverseParams) URLQuery() (v url.Values) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
-}
-
-type GeocodeReversePostParams struct {
-	// Language code for localized names (e.g. en, de, fr)
-	Lang param.Field[string] `query:"lang"`
-	// Legacy shorthand. Latitude. Use near param instead.
-	Lat param.Field[float64] `query:"lat"`
-	// Filter by layer: house or poi
-	Layer param.Field[string] `query:"layer"`
-	// Maximum results (default 1, max 20)
-	Limit param.Field[int64] `query:"limit"`
-	// Legacy shorthand. Longitude. Use near param instead.
-	Lng param.Field[float64] `query:"lng"`
-	// Point geometry for reverse geocode (lat,lng or GeoJSON). Alternative to lat/lng
-	// params.
-	Near param.Field[string] `query:"near"`
-	// Search radius in meters (default 200, max 5000)
-	Radius param.Field[int64] `query:"radius"`
-}
-
-// URLQuery serializes [GeocodeReversePostParams]'s query parameters as
-// `url.Values`.
-func (r GeocodeReversePostParams) URLQuery() (v url.Values) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,

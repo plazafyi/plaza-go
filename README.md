@@ -33,7 +33,7 @@ Or to pin the version:
 <!-- x-release-please-start-version -->
 
 ```sh
-go get -u 'github.com/plazafyi/plaza-go@v0.2.0'
+go get -u 'github.com/plazafyi/plaza-go@v0.3.0'
 ```
 
 <!-- x-release-please-end -->
@@ -62,10 +62,7 @@ func main() {
 		option.WithAPIKey("My API Key"), // defaults to os.LookupEnv("PLAZA_API_KEY")
 		option.WithEnvironmentLocal(),   // defaults to option.WithEnvironmentProduction()
 	)
-	featureCollection, err := client.Elements.Query(context.TODO(), githubcomplazafyiplazago.ElementQueryParams{
-		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
-		Radius: githubcomplazafyiplazago.F(500.000000),
-	})
+	featureCollection, err := client.Features.Query(context.TODO(), githubcomplazafyiplazago.FeatureQueryParams{})
 	if err != nil {
 		panic(err.Error())
 	}
@@ -158,7 +155,7 @@ client := githubcomplazafyiplazago.NewClient(
 	option.WithHeader("X-Some-Header", "custom_header_info"),
 )
 
-client.Elements.Query(context.TODO(), ...,
+client.Features.Query(context.TODO(), ...,
 	// Override the header
 	option.WithHeader("X-Some-Header", "some_other_custom_header_info"),
 	// Add an undocumented field to the request body, using sjson syntax
@@ -187,10 +184,7 @@ When the API returns a non-success status code, we return an error with type
 To handle errors, we recommend that you use the `errors.As` pattern:
 
 ```go
-_, err := client.Elements.Query(context.TODO(), githubcomplazafyiplazago.ElementQueryParams{
-	Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
-	Radius: githubcomplazafyiplazago.F(500.000000),
-})
+_, err := client.Features.Query(context.TODO(), githubcomplazafyiplazago.FeatureQueryParams{})
 if err != nil {
 	var apierr *githubcomplazafyiplazago.Error
 	if errors.As(err, &apierr) {
@@ -215,12 +209,9 @@ To set a per-retry timeout, use `option.WithRequestTimeout()`.
 // This sets the timeout for the request, including all the retries.
 ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 defer cancel()
-client.Elements.Query(
+client.Features.Query(
 	ctx,
-	githubcomplazafyiplazago.ElementQueryParams{
-		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
-		Radius: githubcomplazafyiplazago.F(500.000000),
-	},
+	githubcomplazafyiplazago.FeatureQueryParams{},
 	// This sets the per-retry timeout
 	option.WithRequestTimeout(20*time.Second),
 )
@@ -254,12 +245,9 @@ client := githubcomplazafyiplazago.NewClient(
 )
 
 // Override per-request:
-client.Elements.Query(
+client.Features.Query(
 	context.TODO(),
-	githubcomplazafyiplazago.ElementQueryParams{
-		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
-		Radius: githubcomplazafyiplazago.F(500.000000),
-	},
+	githubcomplazafyiplazago.FeatureQueryParams{},
 	option.WithMaxRetries(5),
 )
 ```
@@ -272,12 +260,9 @@ you need to examine response headers, status codes, or other details.
 ```go
 // Create a variable to store the HTTP response
 var response *http.Response
-featureCollection, err := client.Elements.Query(
+featureCollection, err := client.Features.Query(
 	context.TODO(),
-	githubcomplazafyiplazago.ElementQueryParams{
-		Near:   githubcomplazafyiplazago.F("48.8584,2.2945"),
-		Radius: githubcomplazafyiplazago.F(500.000000),
-	},
+	githubcomplazafyiplazago.FeatureQueryParams{},
 	option.WithResponseInto(&response),
 )
 if err != nil {
